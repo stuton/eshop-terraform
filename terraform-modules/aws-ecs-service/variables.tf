@@ -28,10 +28,10 @@ variable "public_subnets" {
   default     = []
 }
 
-variable "target_group_arns" {
-  description = "ARNs of the target groups. Useful for passing to your Auto Scaling group"
-  type        = list(string)
-  default     = []
+variable "lb_id" {
+  description = "The ID and ARN of the load balancer we created"
+  type        = string
+  default     = ""
 }
 
 variable "aws_cloudwatch_log_group_name" {

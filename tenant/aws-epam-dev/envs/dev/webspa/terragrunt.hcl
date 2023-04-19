@@ -13,11 +13,10 @@ locals {
 dependency "ecs" {
   config_path = "../base"
 
-  mock_outputs_allowed_terraform_commands = ["validate"]
   mock_outputs = {
     cluster_id = "fake-cluster_id"
     public_subnets = ["fake-public_subnet"]
-    target_group_arns = ["arn:aws:iam:::fake-target_group_arn"]
+    lb_id = "arn:aws:elasticloadbalancing:ap-southeast-2:123456789012:fake"
     aws_cloudwatch_log_group_name = "fake-aws_cloudwatch_log_group_name"
   }
 }
@@ -27,6 +26,6 @@ inputs = {
   image  = "winshiftq/webspa:linux-terraform"
   cluster_id = dependency.ecs.outputs.cluster_id
   public_subnets = dependency.ecs.outputs.public_subnets
-  target_group_arns = dependency.ecs.outputs.target_group_arns
+  lb_id = dependency.ecs.outputs.lb_id
   aws_cloudwatch_log_group_name = dependency.ecs.outputs.aws_cloudwatch_log_group_name
 }
