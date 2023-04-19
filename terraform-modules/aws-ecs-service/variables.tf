@@ -28,6 +28,12 @@ variable "public_subnets" {
   default     = []
 }
 
+variable "vpc_id" {
+  description = "The ID VPC we created"
+  type        = string
+  default     = ""
+}
+
 variable "lb_id" {
   description = "The ID and ARN of the load balancer we created"
   type        = string

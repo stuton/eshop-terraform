@@ -8,6 +8,11 @@ output "public_subnets" {
   value       = module.vpc.public_subnets
 }
 
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = module.vpc.vpc_id
+}
+
 output "lb_id" {
   description = "The ID and ARN of the load balancer we created"
   value       = module.alb.lb_id
