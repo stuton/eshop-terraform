@@ -184,7 +184,7 @@ module "mq" {
 ################################################################################
 
 resource "aws_cloudwatch_log_group" "this" {
-  name              = "/aws/ecs/${var.cluster_name}"
+  name              = "/aws/ecs/${local.cluster_name}"
   retention_in_days = var.cloudwatch_retention_in_days
 
   tags = var.tags
