@@ -1,8 +1,19 @@
 data "aws_availability_zones" "available" {}
 
 locals {
-  vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+
+  vpc_name_needed = var.create_vpc && length(var.vpc_name) == 0
+  vpc_name = local.vpc_name_needed ? "${var.app_name}-vpc" : ""
+
+  cluster_name_needed = var.create_cluster && length(var.cluster_name) == 0
+  cluster_name = local.cluster_name_needed ? "${var.app_name}-ecs" : ""
+
+  load_balancer_name_needed = var.create_alb && length(var.load_balancer_name) == 0
+  load_balancer_name = local.load_balancer_name_needed ? "${var.app_name}-alb" : ""
+
+  mq_broker_name_needed = var.create_mq && length(var.mq_broker_name) == 0
+  mq_broker_name = local.mq_broker_name_needed ? "${var.app_name}-mq" : ""
 }
 
 #########################################
@@ -14,7 +25,7 @@ module "ecs" {
 
   create = var.create_cluster
 
-  cluster_name = var.cluster_name
+  cluster_name = local.cluster_name
 
   cluster_configuration = {
     execute_command_configuration = {
@@ -49,12 +60,15 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 3.0"
 
-  name = var.vpc_name
-  cidr = local.vpc_cidr
+  create_vpc = var.create_vpc
+
+  name = local.vpc_name
+
+  cidr = var.vpc_cidr
 
   azs             = local.azs
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
+  private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 4, k)]
+  public_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 48)]
 
   enable_nat_gateway   = false
   single_nat_gateway   = false
@@ -72,10 +86,8 @@ module "alb" {
   version = "8.6.0"
 
   create_lb = var.create_alb
-
-  name = var.cluster_name
-
-  load_balancer_type = "application"
+  name = local.load_balancer_name
+  load_balancer_type = var.load_balancer_type
 
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.public_subnets
@@ -109,7 +121,63 @@ module "alb" {
 
 }
 
+##################################################################
+# Amazon MQ
+##################################################################
 
+module "mq" {
+    source = "cloudposse/mq-broker/aws"
+    version     = "3.0.0"
+    
+    enabled = var.create_mq
+
+    name                       = var.mq_broker_name
+    apply_immediately          = true
+    auto_minor_version_upgrade = true
+    deployment_mode            = var.mq_deployment_mode
+    engine_type                = var.mq_engine_type
+    engine_version             = var.mq_engine_version
+    host_instance_type         = var.mq_host_instance_type
+    publicly_accessible        = false
+    general_log_enabled        = false
+    audit_log_enabled          = false
+    encryption_enabled         = true
+    use_aws_owned_key          = true
+    vpc_id                     = module.vpc.vpc_id
+    subnet_ids                 = module.vpc.public_subnets
+  }
+
+##################################################################
+# Elasticache Redis
+##################################################################
+
+# module "redis" {
+#   source = "cloudposse/elasticache-redis/aws"
+#   version = "0.50.0"
+
+#   availability_zones         = local.azs
+#   zone_id                    = var.zone_id
+#   vpc_id                     = module.vpc.vpc_id
+#   allowed_security_group_ids = [module.vpc.vpc_default_security_group_id]
+#   subnets                    = module.subnets.private_subnet_ids
+#   cluster_size               = var.cluster_size
+#   instance_type              = var.instance_type
+#   apply_immediately          = true
+#   automatic_failover_enabled = false
+#   engine_version             = var.engine_version
+#   family                     = var.family
+#   at_rest_encryption_enabled = var.at_rest_encryption_enabled
+#   transit_encryption_enabled = var.transit_encryption_enabled
+
+#   parameter = [
+#     {
+#       name  = "notify-keyspace-events"
+#       value = "lK"
+#     }
+#   ]
+
+#   context = module.this.context
+# }
 
 ################################################################################
 # Supporting Resources

@@ -15,7 +15,10 @@ locals {
 }
 
 inputs = {
-  vpc_name       = "eshop-vpc"
-  cluster_name   = "eshop-app"
+  app_name       = "eshop"
+  vpc_cidr       = "10.0.0.0/16"
+  create_mq      = false
+  mq_engine_type = "RabbitMQ"
+  mq_engine_version = "3.11.13"
   tags           = lookup(local, "tags", null) != null ? merge(local.tags, local.common_tags) : local.common_tags
 }
