@@ -16,6 +16,11 @@ variable "image" {
   default     = ""
 }
 
+variable "image_tag" {
+  description = "Name of the cluster (up to 255 letters, numbers, hyphens, and underscores)"
+  type        = string
+}
+
 variable "cluster_id" {
   description = "ID that identifies the cluster"
   type        = string

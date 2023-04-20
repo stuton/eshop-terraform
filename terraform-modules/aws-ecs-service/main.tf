@@ -3,9 +3,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode([
     {
       name      = var.name
-      image     = var.image
-    #   cpu       = 10
-    #   memory    = 512
+      image     = "${var.image}:${var.image_tag}"
       essential = true
       portMappings = [
         {

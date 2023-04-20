@@ -24,7 +24,7 @@ dependency "ecs" {
 
 inputs = {
   name   = "webspa"
-  image  = "winshiftq/webspa:linux-terraform"
+  image  = "winshiftq/webspa"
   cluster_id = dependency.ecs.outputs.cluster_id
   vpc_id = dependency.ecs.outputs.vpc_id
   public_subnets = dependency.ecs.outputs.public_subnets
