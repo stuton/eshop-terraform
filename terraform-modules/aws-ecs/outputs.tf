@@ -22,3 +22,8 @@ output "aws_cloudwatch_log_group_name" {
   description = "The name of the log group. If omitted, Terraform will assign a random, unique name"
   value       = aws_cloudwatch_log_group.this.name
 }
+
+output "application_username" {
+  description = "AmazonMQ application username"
+  value       = module.mq.application_username
+}

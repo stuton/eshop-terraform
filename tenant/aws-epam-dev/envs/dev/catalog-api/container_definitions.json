@@ -1,0 +1,43 @@
+[
+    {
+      "name"      : "${container_name}",
+      "image"     : "${image}",
+      "essential" : true,
+      "portMappings" : [
+        {
+          "containerPort" : 80,
+          "hostPort"      : 80
+        }
+      ],
+      "environment" : [
+        {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
+        {"name": "PicBaseUrl", "value": "Development"},
+        {"name": "EventBusConnection", "value": "${ESHOP_AZURE_SERVICE_BUS:-rabbitmq}"},
+        {"name": "EventBusUserName", "value": "${ESHOP_SERVICE_BUS_USERNAME}"},
+        {"name": "UseCustomizationData", "value": "True"},
+        {"name": "AzureServiceBusEnabled", "value": "False"},
+        {"name": "AzureStorageEnabled", "value": "False"},
+        {"name": "GRPC_PORT", "value": "81"},
+        {"name": "PORT", "value": "80"},
+        {"name": "PATH_BASE", "value": "/catalog-api"}
+      ],
+      "secrets": [
+        {
+            "name": "ConnectionString",
+            "valueFrom": "arn:aws:ssm:region:aws_account_id:parameter/parameter_name"
+        },
+        {
+            "name": "EventBusPassword",
+            "valueFrom": "arn:aws:ssm:region:aws_account_id:parameter/parameter_name"
+        }
+      ],
+      "logConfiguration" : {
+        "logDriver" : "awslogs",
+        "options" : {
+            "awslogs-region" : "eu-west-3",
+            "awslogs-group" : "/aws/ecs/eshop/catalog-api",
+            "awslogs-stream-prefix" : "ec2"
+        }
+      }
+    }
+  ]

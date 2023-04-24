@@ -1,26 +1,6 @@
 resource "aws_ecs_task_definition" "this" {
   family = var.name
-  container_definitions = jsonencode([
-    {
-      name      = var.name
-      image     = "${var.image}:${var.image_tag}"
-      essential = true
-      portMappings = [
-        {
-          containerPort = 80
-          hostPort      = 80
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs",
-        options = {
-            awslogs-region = "eu-west-3",
-            awslogs-group = "${var.aws_cloudwatch_log_group_name}",
-            awslogs-stream-prefix = "ec2"
-        }
-      }
-    }
-  ])
+  container_definitions = var.container_definitions
 
   # Fargate configuration: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-cpu-memory-error.html
   cpu = 512
@@ -88,4 +68,11 @@ resource "aws_lb_target_group" "this" {
 
   load_balancing_cross_zone_enabled = false
   deregistration_delay = 300
+}
+
+resource "aws_cloudwatch_log_group" "this" {
+  name              = "/aws/ecs/${var.name}"
+  retention_in_days = var.cloudwatch_retention_in_days
+
+  tags = var.tags
 }

@@ -10,17 +10,6 @@ variable "name" {
   default     = ""
 }
 
-variable "image" {
-  description = "Name of the cluster (up to 255 letters, numbers, hyphens, and underscores)"
-  type        = string
-  default     = ""
-}
-
-variable "image_tag" {
-  description = "Name of the cluster (up to 255 letters, numbers, hyphens, and underscores)"
-  type        = string
-}
-
 variable "cluster_id" {
   description = "ID that identifies the cluster"
   type        = string
@@ -45,7 +34,7 @@ variable "lb_id" {
   default     = ""
 }
 
-variable "aws_cloudwatch_log_group_name" {
-  type        = string
-  default     = ""
+variable "container_definitions" {
+  type        = list(string)
+  default     = []
 }

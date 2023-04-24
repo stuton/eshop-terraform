@@ -91,9 +91,7 @@ module "alb" {
 
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.public_subnets
-  # Attach security groups
   security_groups = [module.vpc.default_security_group_id]
-  # Attach rules to the created security group
   security_group_rules = {
     ingress_all_http = {
       type        = "ingress"
@@ -112,12 +110,7 @@ module "alb" {
     }
   }
 
-  # # See notes in README (ref: https://github.com/terraform-providers/terraform-provider-aws/issues/7987)
-  # access_logs = {
-  #   bucket = module.log_bucket.s3_bucket_id
-  # }
-
-  //tags = var.tags
+  tags = var.tags
 
 }
 
@@ -146,6 +139,55 @@ module "mq" {
     vpc_id                     = module.vpc.vpc_id
     subnet_ids                 = module.vpc.public_subnets
   }
+
+##################################################################
+# RDS
+##################################################################
+
+module "db" {
+  source  = "terraform-aws-modules/rds/aws"
+  version = "5.6.0"
+
+  create_db_instance = var.create_database_instance
+  identifier = var.database_instance_name
+
+  engine            = var.database_engine
+  engine_version    = var.database_engine_version
+  instance_class    = var.database_instance_class
+  allocated_storage = var.database_allocated_storage
+  storage_encrypted = var.database_st
+
+  db_name  = var.database_name
+  username = var.database_username
+  port     = var.database_port
+
+  iam_database_authentication_enabled = var.database_iam_database_authentication_enabled
+
+  vpc_security_group_ids = [module.vpc.default_security_group_id]
+
+  # monitoring_interval = "30"
+  # monitoring_role_name = "MyRDSMonitoringRole"
+  # create_monitoring_role = true
+
+  tags = var.tags
+
+  # DB subnet group
+  create_db_subnet_group = true
+  subnet_ids             = module.vpc.public_subnets
+
+  # DB parameter group
+  family = var.database_family
+
+  # DB option group
+  major_engine_version = var.database_major_engine_version
+
+  # Database Deletion Protection
+  deletion_protection = var.database_deletion_protection
+
+  parameters = var.database_parameters
+
+  options = var.database_options
+}
 
 ##################################################################
 # Elasticache Redis
