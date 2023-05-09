@@ -304,13 +304,49 @@ variable "database_random_password_length" {
   default     = 16
 }
 
+variable "database_publicly_accessible" {
+  description = "Bool to control if instance is publicly accessible"
+  type        = bool
+  default     = false
+}
+
+variable "database_allow_major_version_upgrade" {
+  description = "Indicates that major version upgrades are allowed. Changing this parameter does not result in an outage and the change is asynchronously applied as soon as possible"
+  type        = bool
+  default     = false
+}
+
 ################################################################################
 # Supporting Resources
 ################################################################################
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group#retention_in_days
+variable "cloudwatch_log_group_name" {
+  type        = string
+  description = "description"
+}
+
 variable "cloudwatch_retention_in_days" {
   description = "Specifies the number of days you want to retain log events in the specified log group"
   type        = string
-  default     = 1
+  default     = "1"
 }
+
+variable "kms_ssm_key_arn" {
+  type        = string
+  description = "ARN of the AWS KMS key used for SSM encryption"
+  default     = "alias/aws/ssm"
+}
+
+variable "overwrite_ssm_parameter" {
+  type        = bool
+  description = "Whether to overwrite an existing SSM parameter"
+  default     = true
+}
+
+variable "create_api_gateway" {
+  type        = bool
+  default     = true
+  description = "description"
+}
+

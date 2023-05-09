@@ -1,5 +1,6 @@
 include "root" {
   path = find_in_parent_folders()
+  expose  = true
 }
 
 terraform {
@@ -8,26 +9,40 @@ terraform {
 
 locals {
   source_base_url = "../../../../../terraform-modules/aws-ecs-service"
+
+  name = "webspa"
+  image_name = "winshiftq/webspa:linux-terraform"
+  cloudwatch_log_group_name = "/aws/ecs/eshop/webspa"
+  route_key = "ANY /site/{proxy+}"
+  autoscaling_capacity_provider = "on-demand-micro"
 }
 
 dependency "ecs" {
   config_path = "../base"
 
   mock_outputs = {
-    cluster_id = "fake-cluster_id"
-    vpc_id = "fake-vpc_id"
-    public_subnets = ["fake-public_subnet"]
-    lb_id = "arn:aws:elasticloadbalancing:ap-southeast-2:123456789012:fake"
-    aws_cloudwatch_log_group_name = "fake-aws_cloudwatch_log_group_name"
+    apigatewayv2_id = "fake"
+    apigatewayv2_api_api_endpoint = "fake"
+    alb_sg_security_group_id = "fake"
   }
 }
 
 inputs = {
-  name   = "webspa"
-  image  = "winshiftq/webspa"
-  cluster_id = dependency.ecs.outputs.cluster_id
-  vpc_id = dependency.ecs.outputs.vpc_id
-  public_subnets = dependency.ecs.outputs.public_subnets
-  lb_id = dependency.ecs.outputs.lb_id
-  aws_cloudwatch_log_group_name = dependency.ecs.outputs.aws_cloudwatch_log_group_name
+  name   = local.name
+  container_name = local.name
+  service_cpu = 512
+  service_memory = 870
+  route_key = local.route_key
+  apigatewayv2_id = dependency.ecs.outputs.apigatewayv2_id
+  alb_sg_security_group_id = dependency.ecs.outputs.alb_sg_security_group_id
+  autoscaling_capacity_provider = local.autoscaling_capacity_provider
+  cloudwatch_log_group_name = local.cloudwatch_log_group_name
+  container_definitions = templatefile("container_definitions.json", {
+    container_name = local.name
+    container_port = 80
+    image = local.image_name
+    region = include.root.locals.aws_region
+    cloudwatch_log_group_name = local.cloudwatch_log_group_name
+    basic_url = dependency.ecs.outputs.apigatewayv2_api_api_endpoint
+  })
 }

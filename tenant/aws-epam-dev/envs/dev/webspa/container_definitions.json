@@ -13,21 +13,12 @@
     }
   ],
   "environment" : [
-    {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
-    {"name": "PicBaseUrl", "value": "/c/api/v1/catalog/items/[0]/pic/"},
-    {"name": "ConnectionString", "value": "${connection_string}"},
+    {"name": "ASPNETCORE_ENVIRONMENT", "value": "Production"},
+    {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
     {"name": "UseCustomizationData", "value": "True"},
-    {"name": "AzureServiceBusEnabled", "value": "False"},
-    {"name": "AzureStorageEnabled", "value": "False"},
-    {"name": "GRPC_PORT", "value": "81"},
-    {"name": "PORT", "value": "80"},
-    {"name": "PATH_BASE", "value": "/c"}
-  ],
-  "secrets": [
-    {
-      "name": "EventBusConnection",
-      "valueFrom": "${service_bus_host}"
-    }
+    {"name": "IdentityUrl", "value": "${basic_url}"},
+    {"name": "PurchaseUrl", "value": "${basic_url}"},
+    {"name": "SignalrHubUrl", "value": "${basic_url}"}
   ],
   "readonly_root_filesystem": false,
   "log_configuration" : {
