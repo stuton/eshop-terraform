@@ -3,8 +3,6 @@ on:
     branches:
     - define-other-services
 
-env:
-  
 jobs:
   infracost:
     name: Infracost
