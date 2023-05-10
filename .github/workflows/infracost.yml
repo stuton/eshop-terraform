@@ -3,12 +3,13 @@ on:
     branches:
     - define-other-services
 
+
 jobs:
   infracost:
     name: Infracost
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       # Required to post comments
       pull-requests: write
 
