@@ -1,0 +1,40 @@
+{
+  "name"      : "${container_name}",
+  "image"     : "${image}",
+  "essential" : true,
+  "cpu": 256,
+  "memory": 512,
+  "port_mappings" : [
+    {
+      "name": "${container_name}-${container_port}",
+      "containerPort": 80,
+      "hostPort": 0,
+      "protocol": "tcp"
+    }
+  ],
+  "environment" : [
+    {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
+    {"name": "urls__basket", "value": "${backet_url}"},
+    {"name": "urls__catalog", "value": "${catalog_url}"},
+    {"name": "urls__orders", "value": "${ordering_url}"},
+    {"name": "urls__identity", "value": "${identity_url}"},
+    {"name": "urls__grpcBasket", "value": "${backet_url}:81"},
+    {"name": "urls__grpcCatalog", "value": "${catalog_url}:81"},
+    {"name": "urls__grpcOrdering", "value": "${ordering_url}:81"},
+    {"name": "CatalogUrlHC", "value": "${catalog_url}/hc"},
+    {"name": "OrderingUrlHC", "value": "${ordering_url}/hc"},
+    {"name": "IdentityUrlHC", "value": "${identity_url}/hc"},
+    {"name": "BasketUrlHC", "value": "${backet_url}/hc"},
+    {"name": "PaymentUrlHC", "value": "${payment_url}/hc"},
+    {"name": "IdentityUrlExternal", "value": "${identity_ext_url}"}
+  ],
+  "readonly_root_filesystem": false,
+  "log_configuration" : {
+    "logDriver" : "awslogs",
+    "options" : {
+        "awslogs-region" : "${region}",
+        "awslogs-group" : "${cloudwatch_log_group_name}",
+        "awslogs-stream-prefix" : "ecs"
+    }
+  }
+}

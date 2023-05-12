@@ -1,0 +1,50 @@
+{
+  "name"      : "${container_name}",
+  "image"     : "${image}",
+  "essential" : true,
+  "cpu": 256,
+  "memory": 512,
+  "port_mappings" : [
+    {
+      "name": "${container_name}-${container_port}",
+      "containerPort": 80,
+      "hostPort": 0,
+      "protocol": "tcp"
+    }
+  ],
+  "environment" : [
+    {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
+    {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
+    {"name": "HealthChecksUI__HealthChecks__0__Name", "value": "WebMVC HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__0__Uri", "value": "${webmvc_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__1__Name", "value": "WebSPA HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__1__Uri", "value": "${webspa_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__2__Name", "value": "Web Shopping Aggregator GW HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__2__Uri", "value": "${webshoppingagg_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__3__Name", "value": "Mobile Shopping Aggregator HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__3__Uri", "value": "${mobileshoppingagg_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__4__Name", "value": "Ordering HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__4__Uri", "value": "${ordering_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__5__Name", "value": "Basket HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__5__Uri", "value": "${basket_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__6__Name", "value": "Catalog HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__6__Uri", "value": "${catalog_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__7__Name", "value": "Identity HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__7__Uri", "value": "${identity_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__8__Name", "value": "Payments HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__8__Uri", "value": "${payment_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__9__Name", "value": "Ordering SignalRHub HTTP Check"},
+    {"name": "HealthChecksUI__HealthChecks__9__Uri", "value": "${ordering_signalrhub_url}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__10__Name", "value": "Ordering HTTP Background Check"},
+    {"name": "HealthChecksUI__HealthChecks__10__Uri", "value": "${ordering_backgroundtasks_url}/hc"}
+  ],
+  "readonly_root_filesystem": false,
+  "log_configuration" : {
+    "logDriver" : "awslogs",
+    "options" : {
+        "awslogs-region" : "${region}",
+        "awslogs-group" : "${cloudwatch_log_group_name}",
+        "awslogs-stream-prefix" : "ecs"
+    }
+  }
+}
