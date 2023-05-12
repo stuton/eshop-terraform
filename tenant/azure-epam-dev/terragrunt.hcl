@@ -1,10 +1,17 @@
 locals {
-  tenant     = "azure-epam-dev"
-  subscription_id = "82b365c3-126d-4821-8f5c-9b39d9fb878b"
-  location = "francesouth"
+  # Automatically load environment-level variables
+  env_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 
-  env = basename(dirname(path_relative_to_include()))
-  env_name = local.env != "." ? local.env : ""
+  # Extract the variables we need for easy access
+  subscription_id      = local.env_vars.locals.subscription_id
+  tenant_id            = local.env_vars.locals.tenant_id
+  env_name             = local.env_vars.locals.env_name
+  location             = local.env_vars.locals.location
+  resource_group_name  = local.env_vars.locals.resource_group_name
+  deployment_storage_resource_group_name = local.env_vars.locals.deployment_storage_resource_group_name
+  deployment_storage_account_name        = local.env_vars.locals.deployment_storage_account_name
+
+  tenant = "azure-epam-dev"
 
   default_tags = {
     Tenant    = local.tenant
@@ -35,11 +42,11 @@ generate "versions" {
       required_providers {
         azurerm = {
           source = "hashicorp/azurerm"
-          version = "2.95.0"
+          version = "=3.55.0"
         }
         azuread = {
             source = "hashicorp/azuread"
-            version = "2.18.0"
+            version = "=2.38.0"
         }
       }
     }
@@ -50,14 +57,18 @@ EOF
 remote_state {
   backend = "azurerm"
   config = {
-      subscription_id = "${local.subscription_id}"
-      key = "${path_relative_to_include()}/terraform.tfstate"
-      resource_group_name = "rg-terragrunt-eshop"
-      storage_account_name = "stterragrunteshop"
-      container_name = "environment-states"
+    key                  = "${path_relative_to_include()}/terraform.tfstate"
+    subscription_id      = local.subscription_id
+    resource_group_name  = local.deployment_storage_resource_group_name
+    storage_account_name = local.deployment_storage_account_name
+    container_name       = "terraform-state"
   }
   generate = {
-      path      = "backend.tf"
-      if_exists = "overwrite_terragrunt"
+    path      = "backend.tf"
+    if_exists = "overwrite_terragrunt"
   }
 }
+
+inputs = merge(
+  local.env_vars.locals,
+)
