@@ -2,8 +2,8 @@
   "name"      : "${container_name}",
   "image"     : "${image}",
   "essential" : true,
-  "cpu": 256,
-  "memory": 512,
+  "cpu": 64,
+  "memory": 128,
   "port_mappings" : [
     {
       "name": "${container_name}-${container_port}",
@@ -15,14 +15,14 @@
   "environment" : [
     {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
     {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
-    {"name": "SpaClient", "value": "${basic_url}"},
-    {"name": "XamarinCallback", "value": "${basic_url}/xamarincallback"},
-    {"name": "MvcClient", "value": "${basic_url}"},
-    {"name": "BasketApiClient", "value": "${basic_url}"},
-    {"name": "OrderingApiClient", "value": "${basic_url}"},
-    {"name": "MobileShoppingAggClient", "value": "${basic_url}"},
-    {"name": "WebhooksApiClient", "value": "${basic_url}"},
-    {"name": "WebhooksWebClient", "value": "${basic_url}"},
+    {"name": "SpaClient", "value": "${subdomains.webspa}"},
+    {"name": "XamarinCallback", "value": "${subdomains.identity_api}/xamarincallback"},
+    {"name": "MvcClient", "value": "${subdomains.webmvc}"},
+    {"name": "BasketApiClient", "value": "${subdomains.backet_api}"},
+    {"name": "OrderingApiClient", "value": "${subdomains.ordering_api}"},
+    {"name": "MobileShoppingAggClient", "value": "${subdomains.webshoppingagg}"},
+    {"name": "WebhooksApiClient", "value": "${subdomains.webhooks_api}"},
+    {"name": "WebhooksWebClient", "value": "${subdomains.webhooks_client}"},
     {"name": "UseCustomizationData", "value": "true"},
     {"name": "ConnectionString", "value": "${connection_string}"}
   ],

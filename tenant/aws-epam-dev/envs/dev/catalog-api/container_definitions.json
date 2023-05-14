@@ -2,8 +2,8 @@
   "name"      : "${container_name}",
   "image"     : "${image}",
   "essential" : true,
-  "cpu": 256,
-  "memory": 512,
+  "cpu": 64,
+  "memory": 128,
   "port_mappings" : [
     {
       "name": "${container_name}-${container_port}",
@@ -14,7 +14,7 @@
   ],
   "environment" : [
     {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
-    {"name": "PicBaseUrl", "value": "/c/api/v1/catalog/items/[0]/pic/"},
+    {"name": "PicBaseUrl", "value": "${subdomains.catalog_api}/c/api/v1/catalog/items/[0]/pic/"},
     {"name": "ConnectionString", "value": "${connection_string}"},
     {"name": "UseCustomizationData", "value": "True"},
     {"name": "AzureServiceBusEnabled", "value": "False"},

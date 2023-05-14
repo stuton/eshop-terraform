@@ -18,25 +18,15 @@ output "vpc_id" {
   value       = module.vpc.vpc_id
 }
 
-output "alb_sg_security_group_id" {
-  value       = module.alb_sg.security_group_id
-  description = "description"
-}
-
 output "aws_cloudwatch_log_group_name" {
   description = "The name of the log group. If omitted, Terraform will assign a random, unique name"
   value       = aws_cloudwatch_log_group.this.name
 }
 
-output "autoscaling_capacity_providers" {
-  description = "Map of autoscaling capacity providers created and their attributes"
-  value       = module.ecs.autoscaling_capacity_providers
-}
-
 ##################################################################
 # RDS
 ##################################################################
-
+// TODO if we don't create database, %s would be work
 output "db_connection_string" {
   value       = format("Server=%s;User Id=%s;Password=%s;Encrypt=False;TrustServerCertificate=true", 
       replace(module.db.db_instance_endpoint, ":", ","), 
@@ -52,24 +42,17 @@ output "db_connection_string" {
 
 output "mq_connection_uri" {
   description = "AmazonMQ connection uri"
-  value       = aws_ssm_parameter.mq_connection_uri.arn
+  value       = try(aws_ssm_parameter.mq_connection_uri.0.arn, "")
 }
 
 ##################################################################
-# GATEWAY API
+# Elasticache
 ##################################################################
 
-output "apigatewayv2_id" {
-  value       = module.api_gateway.apigatewayv2_api_id
-  description = "description"
+output "elasticache_replication_group_primary_endpoint_address" {
+  value = module.redis.elasticache_replication_group_primary_endpoint_address
 }
 
-output "apigatewayv2_vpc_link_id" {
-  value       = length(module.api_gateway.apigatewayv2_vpc_link_id) > 0 ? module.api_gateway.apigatewayv2_vpc_link_id["eshop"] : ""
-  description = "description"
-}
-
-output "apigatewayv2_api_api_endpoint" {
-  description = "The URI of the API"
-  value       = module.api_gateway.apigatewayv2_api_api_endpoint
+output "elasticache_replication_group_reader_endpoint_address" {
+  value       = module.redis.elasticache_replication_group_reader_endpoint_address
 }

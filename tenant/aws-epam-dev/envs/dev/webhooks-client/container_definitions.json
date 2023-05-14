@@ -15,10 +15,10 @@
   "environment" : [
     {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
     {"name": "Token", "value": "6168DB8D-DC58-4094-AF24-483278923590"},
-    {"name": "IdentityUrl", "value": "${identity_url}"},
-    {"name": "CallBackUrl", "value": "${callback_url}"},
-    {"name": "WebhooksUrl", "value": "${webhooks_url}"},
-    {"name": "SelfUrl", "value": "${self_url}"}
+    {"name": "IdentityUrl", "value": "${subdomains.identity_api}"},
+    {"name": "CallBackUrl", "value": "${subdomains.webhooks_client}"},
+    {"name": "WebhooksUrl", "value": "${discovery_services.webhooks_api}"},
+    {"name": "SelfUrl", "value": "${discovery_services.webhooks_client}"}
   ],
   "readonly_root_filesystem": false,
   "log_configuration" : {

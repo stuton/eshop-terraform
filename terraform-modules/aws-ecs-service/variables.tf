@@ -62,6 +62,12 @@ variable "load_balancer_type" {
   default     = "application"
 }
 
+variable "create_apigatewayv2_integration" {
+  type        = bool
+  default     = false
+  description = "description"
+}
+
 variable "apigatewayv2_id" {
   type        = string
   description = "description"
@@ -77,11 +83,6 @@ variable "autoscaling_capacity_provider" {
 variable "container_definitions" {
   type        = string
   default     = ""
-  description = "description"
-}
-
-variable "alb_sg_security_group_id" {
-  type        = string
   description = "description"
 }
 
@@ -117,4 +118,28 @@ variable "route_key" {
   type        = string
   default     = ""
   description = "description"
+}
+
+variable "create_distribution" {
+  description = "Controls if CloudFront distribution should be created"
+  type        = bool
+  default     = false
+}
+
+variable "enabled_cloudfront" {
+  description = "Whether the distribution is enabled to accept end user requests for content."
+  type        = bool
+  default     = true
+}
+
+variable "cloudfront_price_class" {
+  description = "The price class for this distribution. One of PriceClass_All, PriceClass_200, PriceClass_100"
+  type        = string
+  default     = "PriceClass_100"
+}
+
+variable "domain" {
+  description = "A domain name for which the certificate should be issued"
+  type        = string
+  default     = ""
 }

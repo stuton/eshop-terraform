@@ -15,10 +15,10 @@
   "environment" : [
     {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
     {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
-    {"name": "PurchaseUrl", "value": "${purchase_url}"},
-    {"name": "IdentityUrl", "value": "${identity_url}"},
-    {"name": "IdentityUrlHC", "value": "${identity_url}/hc"},
-    {"name": "SignalrHubUrl", "value": "${signal_rhub_url}"},
+    {"name": "PurchaseUrl", "value": "${subdomains.catalog_api}"},
+    {"name": "IdentityUrl", "value": "${subdomains.identity_api}"},
+    {"name": "IdentityUrlHC", "value": "${discovery_services.identity_api}/hc"},
+    {"name": "SignalrHubUrl", "value": "${subdomains.ordering_signalrhub}"},
     {"name": "UseCustomizationData", "value": "True"}
   ],
   "readonly_root_filesystem": false,

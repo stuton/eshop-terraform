@@ -9,11 +9,26 @@ locals {
   cluster_name_needed = var.create_cluster && length(var.cluster_name) == 0
   cluster_name = local.cluster_name_needed ? "${var.app_name}-ecs" : ""
 
-  load_balancer_name_needed = var.create_alb && length(var.load_balancer_name) == 0
-  load_balancer_name = local.load_balancer_name_needed ? "${var.app_name}-alb" : ""
-
   mq_broker_name_needed = var.create_mq && length(var.mq_broker_name) == 0
   mq_broker_name = local.mq_broker_name_needed ? "${var.app_name}-mq" : ""
+
+  alb_sg_name_needed = var.create_alb_sg && length(var.alb_sg_name) == 0
+  alb_sg_name = local.alb_sg_name_needed ? "${var.app_name}-alb-sg" : ""
+}
+
+#########################################
+# Key pair
+# https://github.com/terraform-aws-modules/terraform-aws-key-pair/blob/master/variables.tf
+#########################################
+module "key_pair" {
+  source  = "terraform-aws-modules/key-pair/aws"
+  version = "2.0.2"
+
+  create = var.create_key_pair
+
+  key_name_prefix = var.app_name
+
+  create_private_key = var.create_private_key
 }
 
 #########################################
@@ -30,9 +45,9 @@ module "autoscaling" {
       instance_type              = "t2.micro"
       use_mixed_instances_policy = false
       mixed_instances_policy     = {}
-      min_size                   = 1
-      max_size                   = 2
-      desired_capacity           = 1
+      min_size                   = var.autoscaling_min_size
+      max_size                   = var.autoscaling_max_size
+      desired_capacity           = var.autoscaling_desired_capacity
       user_data                  = <<-EOT
         #!/bin/bash
         cat <<'EOF' >> /etc/ecs/ecs.config
@@ -47,7 +62,7 @@ module "autoscaling" {
 
   name = var.app_name
 
-  key_name = "anton-epam-workstation"
+  key_name = module.key_pair.key_pair_name
 
   image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
   instance_type = each.value.instance_type
@@ -149,6 +164,7 @@ module "ecs" {
 
 ##################################################################
 # VPC
+# https://github.com/terraform-aws-modules/terraform-aws-vpc/blob/master/variables.tf
 ##################################################################
 
 module "vpc" {
@@ -204,7 +220,9 @@ module "alb_sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "~> 4.0"
 
-  name        = var.app_name
+  create = var.create_alb_sg
+
+  name        = local.alb_sg_name
   description = "Application loadbalancer security group"
   vpc_id      = module.vpc.vpc_id
 
@@ -320,88 +338,55 @@ module "rds_sg" {
 }
 
 ##################################################################
-# API GATEWAY
-# https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2/blob/master/variables.tf
-##################################################################
-
-module "api_gateway" {
-  source = "terraform-aws-modules/apigateway-v2/aws"
-
-  create = var.create_api_gateway
-
-  name          = var.app_name
-  description   = "My awesome HTTP API Gateway"
-  protocol_type = "HTTP"
-
-  create_api_domain_name           = false
-
-  # Only if you use private subnet for ALB
-  # vpc_links = {
-  #   (var.app_name) = {
-  #     name = var.app_name
-  #     security_group_ids = []
-  #     subnet_ids = [module.vpc.public_subnets[0]]
-  #   }
-  # }
-
-  cors_configuration = {
-    allow_headers = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
-    allow_methods = ["*"]
-    allow_origins = ["*"]
-  }
-
-  # Custom domain
-  # domain_name                 = "terraform-aws-modules.modules.tf"
-  # domain_name_certificate_arn = "arn:aws:acm:eu-west-1:052235179155:certificate/2b3a7ed9-05e1-4f9e-952b-27744ba06da6"
-
-  # Access logs
-  default_stage_access_log_destination_arn = aws_cloudwatch_log_group.apigateway.arn
-  default_stage_access_log_format          = "$context.identity.sourceIp - - [$context.requestTime] \"$context.httpMethod $context.routeKey $context.protocol\" $context.status $context.responseLength $context.requestId $context.integrationErrorMessage"
-
-  # authorizers = {
-  #   "azure" = {
-  #     authorizer_type  = "JWT"
-  #     identity_sources = "$request.header.Authorization"
-  #     name             = "azure-auth"
-  #     audience         = ["d6a38afd-45d6-4874-d1aa-3c5c558aqcc2"]
-  #     issuer           = "https://sts.windows.net/aaee026e-8f37-410e-8869-72d9154873e4/"
-  #   }
-  # }
-
-  tags = var.tags
-}
-
-##################################################################
 # Elasticache Redis
 ##################################################################
 
-# module "redis" {
-#   source = "cloudposse/elasticache-redis/aws"
-#   version = "0.50.0"
+module "redis" {
+  source = "umotif-public/elasticache-redis/aws"
+  version = "~> 3.0.0"
 
-#   availability_zones         = local.azs
-#   zone_id                    = var.zone_id
-#   vpc_id                     = module.vpc.vpc_id
-#   allowed_security_group_ids = [module.vpc.vpc_default_security_group_id]
-#   subnets                    = module.subnets.private_subnet_ids
-#   cluster_size               = var.cluster_size
-#   instance_type              = var.instance_type
-#   apply_immediately          = true
-#   automatic_failover_enabled = false
-#   engine_version             = var.engine_version
-#   family                     = var.family
-#   at_rest_encryption_enabled = var.at_rest_encryption_enabled
-#   transit_encryption_enabled = var.transit_encryption_enabled
+  name_prefix        = "redis-basic-example"
+  num_cache_clusters = 2
+  node_type          = "cache.t2.micro"
 
-#   parameter = [
-#     {
-#       name  = "notify-keyspace-events"
-#       value = "lK"
-#     }
-#   ]
+  engine_version            = "6.x"
 
-#   context = module.this.context
-# }
+  # automatic_failover_enabled = true
+  # multi_az_enabled           = true
+
+  # at_rest_encryption_enabled = true
+  # transit_encryption_enabled = true
+  auth_token                 = "1234567890asdfghjkl"
+
+  apply_immediately = true
+  family            = "redis6.x"
+  description       = "Test elasticache redis."
+
+  subnet_ids = module.vpc.public_subnets
+  vpc_id     = module.vpc.vpc_id
+
+  //allowed_security_groups = [aws_security_group.other_sg.id]
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+
+  # parameter = [
+  #   {
+  #     name  = "repl-backlog-size"
+  #     value = "16384"
+  #   }
+  # ]
+
+  # log_delivery_configuration = [
+  #   {
+  #     destination_type = "cloudwatch-logs"
+  #     destination      = "aws_cloudwatch_log_group.henrique.name"
+  #     log_format       = "json"
+  #     log_type         = "engine-log"
+  #   }
+  # ]
+
+  tags = var.tags
+}
 
 ################################################################################
 # Service discovery namespaces
@@ -416,15 +401,27 @@ resource "aws_service_discovery_private_dns_namespace" "this" {
 }
 
 ################################################################################
-# Supporting Resources
+# ACM
+# https://github.com/terraform-aws-modules/terraform-aws-acm/blob/master/variables.tf
 ################################################################################
 
-resource "aws_cloudwatch_log_group" "apigateway" {
-  name              = "debug-apigateway"
-  retention_in_days = var.cloudwatch_retention_in_days
+module "acm" {
+  source  = "terraform-aws-modules/acm/aws"
+  version = "~> 3.0"
+  
+  create_certificate        = var.create_certificate
+  domain_name               = var.domain
+  zone_id                   = data.aws_route53_zone.this.id
+  subject_alternative_names = ["*.${var.domain}"]
 
-  tags = var.tags
+  providers = {
+    aws = aws.virginia
+  }
 }
+
+################################################################################
+# Supporting Resources
+################################################################################
 
 resource "aws_cloudwatch_log_group" "this" {
   name              = var.cloudwatch_log_group_name
@@ -433,24 +430,21 @@ resource "aws_cloudwatch_log_group" "this" {
   tags = var.tags
 }
 
-# https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html#ecs-optimized-ami-linux
-data "aws_ssm_parameter" "ecs_optimized_ami" {
-  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
-}
+resource "aws_ssm_parameter" "autoscaling_key_pair" {
+  name        = "/autoscaling/${var.app_name}/key_pair"
+  description = "Key pair of autoscaling group"
+  type        = "SecureString"
+  value       = module.key_pair.private_key_pem
 
-data "aws_ssm_parameter" "mq" {
-  name = "/mq/mq_application_password"
-  
-  depends_on = [
-    module.mq
-  ]
+  tags = var.tags
 }
 
 resource "aws_ssm_parameter" "mq_connection_uri" {
+  count       = var.create_mq ? 1 : 0
   name        = "/mq/mq_connection_uri"
   value       = format("amqps://%s:%s@%s", 
       module.mq.application_username,
-      data.aws_ssm_parameter.mq.value,
+      data.aws_ssm_parameter.mq.0.value,
       trimprefix(module.mq.primary_ssl_endpoint, "amqps://")
     )
   description = "AMQ connection uri"
@@ -459,4 +453,23 @@ resource "aws_ssm_parameter" "mq_connection_uri" {
   overwrite   = var.overwrite_ssm_parameter
 
   tags        = var.tags
+}
+
+# https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html#ecs-optimized-ami-linux
+data "aws_ssm_parameter" "ecs_optimized_ami" {
+  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
+}
+
+data "aws_route53_zone" "this" {
+  name = var.domain
+}
+
+data "aws_ssm_parameter" "mq" {
+  count = var.create_mq ? 1 : 0
+
+  name = "/mq/mq_application_password"
+  
+  depends_on = [
+    module.mq
+  ]
 }

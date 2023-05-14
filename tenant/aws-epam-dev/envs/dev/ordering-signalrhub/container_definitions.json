@@ -2,8 +2,8 @@
   "name"      : "${container_name}",
   "image"     : "${image}",
   "essential" : true,
-  "cpu": 256,
-  "memory": 512,
+  "cpu": 128,
+  "memory": 256,
   "port_mappings" : [
     {
       "name": "${container_name}-${container_port}",
@@ -16,7 +16,7 @@
     {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
     {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
     {"name": "AzureServiceBusEnabled", "value": "False"},
-    {"name": "IdentityUrl", "value": "${identity_url}"}
+    {"name": "IdentityUrl", "value": "${subdomains.identity_api}"}
   ],
   "secrets": [
     {

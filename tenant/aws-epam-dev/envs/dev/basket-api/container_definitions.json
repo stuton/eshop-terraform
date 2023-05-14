@@ -2,8 +2,8 @@
   "name"      : "${container_name}",
   "image"     : "${image}",
   "essential" : true,
-  "cpu": 256,
-  "memory": 512,
+  "cpu": 64,
+  "memory": 128,
   "port_mappings" : [
     {
       "name": "${container_name}-${container_port}",
@@ -16,10 +16,10 @@
     {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
     {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
     {"name": "ConnectionString", "value": "${connection_string}"},
-    {"name": "IdentityUrl", "value": "${identity_url}"},
-    {"name": "IdentityUrlExternal", "value": "${identity_ext_url}"},
+    {"name": "IdentityUrl", "value": "${discovery_services.identity_api}"},
+    {"name": "IdentityUrlExternal", "value": "${subdomains.identity_api}"},
     {"name": "AzureServiceBusEnabled", "value": "False"},
-    {"name": "PATH_BASE", "value": "/basket-api"},
+    {"name": "PATH_BASE", "value": "/b"},
     {"name": "GRPC_PORT", "value": "81"},
     {"name": "PORT", "value": "80"}
   ],

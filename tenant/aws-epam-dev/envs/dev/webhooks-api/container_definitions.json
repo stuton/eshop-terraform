@@ -16,8 +16,8 @@
     {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
     {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
     {"name": "ConnectionString", "value": "${connection_string}"},
-    {"name": "IdentityUrl", "value": "${identity_url}"},
-    {"name": "IdentityUrlExternal", "value": "${identity_ext_url}:5105"}
+    {"name": "IdentityUrl", "value": "${discovery_services.identity_api}"},
+    {"name": "IdentityUrlExternal", "value": "${subdomains.identity_api}"}
   ],
   "secrets": [
     {

@@ -4,10 +4,38 @@ variable "app_name" {
   default     = ""
 }
 
+variable "domain" {
+  description = "A domain name for which the certificate should be issued"
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "A map of tags to add to all resources"
   type        = map(string)
   default     = {}
+}
+
+################################################################################
+# Key pair
+################################################################################
+
+variable "create_key_pair" {
+  description = "Determines whether key_pair will be created"
+  type        = bool
+  default     = true
+}
+
+variable "custom_key_pair_name" {
+  description = "The name for the custom key pair"
+  type        = string
+  default     = null
+}
+
+variable "create_private_key" {
+  description = "Determines whether a private key will be created"
+  type        = bool
+  default     = true
 }
 
 ################################################################################
@@ -25,6 +53,24 @@ variable "cluster_name" {
   default     = ""
 }
 
+variable "autoscaling_min_size" {
+  description = "The minimum size of the autoscaling group"
+  type        = number
+  default     = null
+}
+
+variable "autoscaling_max_size" {
+  description = "The maximum size of the autoscaling group"
+  type        = number
+  default     = null
+}
+
+variable "autoscaling_desired_capacity" {
+  description = "The number of Amazon EC2 instances that should be running in the autoscaling group"
+  type        = number
+  default     = null
+}
+
 ################################################################################
 # VPC
 ################################################################################
@@ -36,9 +82,9 @@ variable "create_vpc" {
 }
 
 variable "vpc_cidr" {
+  description = "(Optional) The IPv4 CIDR block for the VPC. CIDR can be explicitly set or it can be derived from IPAM using `ipv4_netmask_length` & `ipv4_ipam_pool_id`"
   type        = string
-  default     = ""
-  description = "description"
+  default     = "10.0.0.0/16"
 }
 
 variable "vpc_name" {
@@ -317,6 +363,22 @@ variable "database_allow_major_version_upgrade" {
 }
 
 ################################################################################
+# Security Groups
+################################################################################
+
+variable "create_alb_sg" {
+  description = "Determines whether resources will be created (affects all resources)"
+  type        = bool
+  default     = true
+}
+
+variable "alb_sg_name" {
+  type        = string
+  default     = ""
+  description = "description"
+}
+
+################################################################################
 # Supporting Resources
 ################################################################################
 
@@ -344,9 +406,8 @@ variable "overwrite_ssm_parameter" {
   default     = true
 }
 
-variable "create_api_gateway" {
+variable "create_certificate" {
+  description = "Whether to create ACM certificate"
   type        = bool
   default     = true
-  description = "description"
 }
-

@@ -1,4 +1,13 @@
-# Prepare remote state store for Azure
+# Installation
+
+## AWS
+1. Create public hosted zone with your domain
+2. cd tenant/aws-epam-dev/envs/dev
+3. terragrunt run-all apply --terragrunt-non-interactive --terragrunt-include-external-dependencies
+
+## Microsoft Azure
+
+### Prepare remote state store for Azure
 
 Your Terraform state is stored using an Azure Blob Storage Container as a Terraform backend.
 

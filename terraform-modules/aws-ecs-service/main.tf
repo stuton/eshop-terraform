@@ -16,9 +16,11 @@ module "ecs_service" {
   
   requires_compatibilities = ["EC2"]
 
-  # service_registries = {
-  #   registry_arn = aws_service_discovery_service.this.arn
-  # }
+  service_registries = {
+    registry_arn = aws_service_discovery_service.this.arn
+    container_port = var.container_port
+    container_name = var.container_name
+  }
 
   container_definitions = {
     (var.name) = jsondecode(var.container_definitions)
@@ -52,7 +54,7 @@ module "ecs_service" {
       to_port                  = var.container_port
       protocol                 = "tcp"
       description              = "Service port"
-      source_security_group_id = var.alb_sg_security_group_id
+      source_security_group_id = data.aws_security_group.this.id
     }
     egress_all = {
       type        = "egress"
@@ -81,7 +83,7 @@ module "service_alb" {
   vpc_id  = data.aws_vpc.this.id
   subnets = data.aws_subnets.public.ids
   
-  security_groups = [var.alb_sg_security_group_id]
+  security_groups = [data.aws_security_group.this.id]
 
   http_tcp_listeners = [
     {
@@ -112,7 +114,7 @@ module "service_alb" {
 ##################################################################
 
 resource "aws_apigatewayv2_integration" "this" {
-  count            = var.apigatewayv2_id != "" ? 1 : 0
+  count            = var.create_apigatewayv2_integration ? 1 : 0
   api_id           = var.apigatewayv2_id
   description      = "Example with a load balancer"
   integration_type = "HTTP_PROXY"
@@ -128,7 +130,7 @@ resource "aws_apigatewayv2_integration" "this" {
 }
 
 resource "aws_apigatewayv2_route" "this" {
-  count     = var.apigatewayv2_id != "" && var.route_key != "" ? 1 : 0
+  count     = var.create_apigatewayv2_integration ? 1 : 0
   api_id    = var.apigatewayv2_id
   route_key = var.route_key
 
@@ -147,7 +149,7 @@ resource "aws_service_discovery_service" "this" {
 
     dns_records {
       ttl  = 10
-      type = "A"
+      type = "SRV"
     }
 
     routing_policy = "MULTIVALUE"
@@ -179,6 +181,13 @@ data "aws_subnets" "public" {
   }
 }
 
+data "aws_security_group" "this" {
+  filter {
+    name   = "tag:Name"
+    values = ["eshop-alb-sg"]
+  }
+}
+
 data "aws_ecs_cluster" "this" {
   cluster_name = "${var.cluster_name}-ecs"
 }
@@ -186,4 +195,84 @@ data "aws_ecs_cluster" "this" {
 data "aws_service_discovery_dns_namespace" "this" {
   name = "default.${data.aws_ecs_cluster.this.cluster_name}.local"
   type = "DNS_PRIVATE"
+}
+
+data "aws_route53_zone" "this" {
+  name = var.domain
+}
+
+# CloudFront supports US East (N. Virginia) Region only.
+data "aws_acm_certificate" "this" {
+  domain   = var.domain
+  statuses = ["ISSUED"]
+
+  provider = aws.virginia
+}
+
+##########
+# cloudfront
+# https://github.com/terraform-aws-modules/terraform-aws-cloudfront/blob/master/variables.tf
+##########
+
+module "cloudfront" {
+  source = "terraform-aws-modules/cloudfront/aws"
+
+  aliases = ["${var.name}.${var.domain}"]
+
+  comment             = "My awesome ${var.name} CloudFront"
+  create_distribution = var.create_distribution
+  enabled             = var.enabled_cloudfront
+  price_class         = var.cloudfront_price_class
+
+  origin = {
+    alb = {
+      domain_name = module.service_alb.lb_dns_name
+      custom_origin_config = {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "http-only"
+        origin_ssl_protocols   = ["TLSv1.1", "TLSv1.2"]
+      }
+    }
+  }
+
+  default_cache_behavior = {
+    target_origin_id           = "alb"
+    viewer_protocol_policy     = "allow-all"
+
+    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    cached_methods  = ["GET", "HEAD"]
+    compress        = true
+    query_string    = true
+  }
+
+  viewer_certificate = {
+    acm_certificate_arn = data.aws_acm_certificate.this.arn
+    ssl_support_method  = "sni-only"
+  }
+
+}
+
+##################################################################
+# Route53
+# https://github.com/terraform-aws-modules/terraform-aws-route53/blob/master/modules/records/variables.tf
+##################################################################
+
+module "records" {
+  source  = "terraform-aws-modules/route53/aws//modules/records"
+  version = "~> 2.0"
+
+  zone_id = data.aws_route53_zone.this.zone_id
+
+  records = [
+    {
+      name = var.name
+      type = "A"
+      alias = {
+        name    = coalesce(module.cloudfront.cloudfront_distribution_domain_name, module.service_alb.lb_dns_name)
+        zone_id = coalesce(module.cloudfront.cloudfront_distribution_hosted_zone_id, module.service_alb.lb_zone_id)
+        evaluate_target_health = false
+      }
+    },
+  ]
 }

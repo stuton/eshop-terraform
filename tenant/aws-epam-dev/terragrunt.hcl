@@ -1,10 +1,15 @@
 locals {
-  tenant     = "aws-epam-dev"
-  account_id = "326106872578"
-  aws_region = "eu-west-3"
+  # Automatically load environment-level variables
+  env_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 
-  env = basename(dirname(path_relative_to_include()))
-  env_name = local.env != "." ? local.env : ""
+  tenant     = "aws-epam-dev"
+  account_id = local.env_vars.locals.account_id
+  aws_region = local.env_vars.locals.aws_region
+  env_name = local.env_vars.locals.env_name
+
+  domain = local.env_vars.locals.domain
+  subdomains = local.env_vars.locals.subdomains
+  discovery_services = local.env_vars.locals.discovery_services
 
   bucket     = join("-", ["terraform-state-${local.tenant}", "${local.env_name}", "${local.aws_region}"])
   dynamodb_table = join("-", ["terraform-locks-${local.tenant}", "${local.env_name}", "${local.aws_region}"])
@@ -27,6 +32,10 @@ provider "aws" {
   # default_tags {
   #   tags = ${jsonencode(local.default_tags)}
   # }
+}
+provider "aws" {
+  alias               = "virginia"
+  region              = "us-east-1"
 }
 EOF
 }
@@ -61,3 +70,7 @@ remote_state {
     if_exists = "overwrite_terragrunt"
   }
 }
+
+inputs = merge(
+  local.env_vars.locals,
+)
