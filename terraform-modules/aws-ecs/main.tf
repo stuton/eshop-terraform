@@ -128,10 +128,6 @@ module "ecs" {
     }
   }
 
-  cluster_service_connect_defaults = {
-    namespace = aws_service_discovery_private_dns_namespace.this.arn
-  }
-
   default_capacity_provider_use_fargate = false
 
   autoscaling_capacity_providers = {
@@ -339,42 +335,34 @@ module "rds_sg" {
 
 ##################################################################
 # Elasticache Redis
+# https://github.com/umotif-public/terraform-aws-elasticache-redis/blob/main/variables.tf
 ##################################################################
 
 module "redis" {
   source = "umotif-public/elasticache-redis/aws"
   version = "~> 3.0.0"
 
-  name_prefix        = "redis-basic-example"
+  name_prefix        = var.app_name
   num_cache_clusters = 2
-  node_type          = "cache.t2.micro"
+  node_type          = var.redis_node_type
 
-  engine_version            = "6.x"
+  engine_version            = var.redis_engine_version
 
   # automatic_failover_enabled = true
   # multi_az_enabled           = true
 
-  # at_rest_encryption_enabled = true
-  # transit_encryption_enabled = true
-  auth_token                 = "1234567890asdfghjkl"
+  at_rest_encryption_enabled = var.redis_at_rest_encryption_enabled
+  transit_encryption_enabled = var.redis_transit_encryption_enabled
+  #auth_token                 = "1234567890asdfghjkl"
 
-  apply_immediately = true
-  family            = "redis6.x"
-  description       = "Test elasticache redis."
+  apply_immediately = var.redis_apply_immediately
+  family            = var.redis_family
+  description       = var.redis_description
 
   subnet_ids = module.vpc.public_subnets
   vpc_id     = module.vpc.vpc_id
 
-  //allowed_security_groups = [aws_security_group.other_sg.id]
-
   ingress_cidr_blocks = ["0.0.0.0/0"]
-
-  # parameter = [
-  #   {
-  #     name  = "repl-backlog-size"
-  #     value = "16384"
-  #   }
-  # ]
 
   # log_delivery_configuration = [
   #   {
@@ -392,12 +380,10 @@ module "redis" {
 # Service discovery namespaces
 ################################################################################
 
-resource "aws_service_discovery_private_dns_namespace" "this" {
-  name        = "default.${local.cluster_name}.local"
-  description = "Service discovery namespace.clustername.local"
-  vpc         = module.vpc.vpc_id
-
-  tags = var.tags
+resource "aws_service_discovery_http_namespace" "this" {
+  name        = local.cluster_name
+  description = "CloudMap namespace for ${local.cluster_name}"
+  tags        = var.tags
 }
 
 ################################################################################

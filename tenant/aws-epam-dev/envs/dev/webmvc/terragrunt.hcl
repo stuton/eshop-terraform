@@ -20,8 +20,8 @@ locals {
 inputs = {
   name                          = local.name
   container_name                = local.name
-  service_cpu                   = 256
-  service_memory                = 512
+  service_cpu                   = 128
+  service_memory                = 256
   route_key                     = local.route_key
   autoscaling_capacity_provider = local.autoscaling_capacity_provider
   cloudwatch_log_group_name     = local.cloudwatch_log_group_name

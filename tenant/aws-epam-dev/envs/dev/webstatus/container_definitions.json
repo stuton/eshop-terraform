@@ -2,8 +2,8 @@
   "name"      : "${container_name}",
   "image"     : "${image}",
   "essential" : true,
-  "cpu": 128,
-  "memory": 256,
+  "cpu": 64,
+  "memory": 128,
   "port_mappings" : [
     {
       "name": "${container_name}-${container_port}",
@@ -26,7 +26,7 @@
     {"name": "HealthChecksUI__HealthChecks__4__Name", "value": "Ordering HTTP Check"},
     {"name": "HealthChecksUI__HealthChecks__4__Uri", "value": "${discovery_services.ordering_api}/hc"},
     {"name": "HealthChecksUI__HealthChecks__5__Name", "value": "Basket HTTP Check"},
-    {"name": "HealthChecksUI__HealthChecks__5__Uri", "value": "${discovery_services.backet_api}/hc"},
+    {"name": "HealthChecksUI__HealthChecks__5__Uri", "value": "${discovery_services.basket_api}/hc"},
     {"name": "HealthChecksUI__HealthChecks__6__Name", "value": "Catalog HTTP Check"},
     {"name": "HealthChecksUI__HealthChecks__6__Uri", "value": "${discovery_services.catalog_api}/hc"},
     {"name": "HealthChecksUI__HealthChecks__7__Name", "value": "Identity HTTP Check"},

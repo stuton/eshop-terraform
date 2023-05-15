@@ -41,7 +41,7 @@ inputs = {
     service_bus_host          = dependency.ecs.outputs.mq_connection_uri
     cloudwatch_log_group_name = local.cloudwatch_log_group_name
     region                    = include.root.locals.aws_region
-    connection_string         = dependency.ecs.outputs.elasticache_replication_group_primary_endpoint_address
+    connection_string         = format("%s,%s", dependency.ecs.outputs.elasticache_replication_group_primary_endpoint_address, "abortConnect=false")
     subdomains                = include.root.locals.subdomains
     discovery_services        = include.root.locals.discovery_services
   })

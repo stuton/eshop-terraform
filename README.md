@@ -5,6 +5,11 @@
 2. cd tenant/aws-epam-dev/envs/dev
 3. terragrunt run-all apply --terragrunt-non-interactive --terragrunt-include-external-dependencies
 
+### Getting key_pair for EC2 instances
+```
+aws ssm get-parameters --with-decryption --names /autoscaling/eshop/key_pair | jq -c '.Parameters[].Value'
+```
+
 ## Microsoft Azure
 
 ### Prepare remote state store for Azure

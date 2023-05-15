@@ -28,11 +28,11 @@ output "aws_cloudwatch_log_group_name" {
 ##################################################################
 // TODO if we don't create database, %s would be work
 output "db_connection_string" {
-  value       = format("Server=%s;User Id=%s;Password=%s;Encrypt=False;TrustServerCertificate=true", 
+  value       = var.create_database_instance ? format("Server=%s;User Id=%s;Password=%s;Encrypt=False;TrustServerCertificate=true", 
       replace(module.db.db_instance_endpoint, ":", ","), 
       module.db.db_instance_username,
       module.db.db_instance_password
-    )
+    ) : ""
   sensitive   = true
 }
 

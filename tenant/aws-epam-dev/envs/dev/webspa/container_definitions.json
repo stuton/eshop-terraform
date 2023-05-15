@@ -18,6 +18,8 @@
     {"name": "UseCustomizationData", "value": "True"},
     {"name": "IdentityUrl", "value": "${subdomains.identity_api}"},
     {"name": "PurchaseUrl", "value": "${subdomains.catalog_api}"},
+    {"name": "BasketUrl", "value": "${subdomains.basket_api}"},
+    {"name": "OrdersUrl", "value": "${subdomains.ordering_api}"},
     {"name": "SignalrHubUrl", "value": "${subdomains.ordering_signalrhub}"}
   ],
   "readonly_root_filesystem": false,

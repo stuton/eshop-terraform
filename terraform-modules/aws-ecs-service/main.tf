@@ -16,11 +16,19 @@ module "ecs_service" {
   
   requires_compatibilities = ["EC2"]
 
-  service_registries = {
-    registry_arn = aws_service_discovery_service.this.arn
-    container_port = var.container_port
-    container_name = var.container_name
+  service_connect_configuration = {
+    namespace = data.aws_service_discovery_http_namespace.this.arn
+    service = {
+      client_alias = {
+        port     = var.container_port
+        dns_name = var.container_name
+      }
+      port_name      = "${var.container_name}-${var.container_port}"
+      discovery_name = var.container_name
+    }
   }
+
+  create_iam_role = false
 
   container_definitions = {
     (var.name) = jsondecode(var.container_definitions)
@@ -141,25 +149,6 @@ resource "aws_apigatewayv2_route" "this" {
 # Supporting Resources
 ################################################################################
 
-resource "aws_service_discovery_service" "this" {
-  name = var.name
-
-  dns_config {
-    namespace_id = data.aws_service_discovery_dns_namespace.this.id
-
-    dns_records {
-      ttl  = 10
-      type = "SRV"
-    }
-
-    routing_policy = "MULTIVALUE"
-  }
-
-  health_check_custom_config {
-    failure_threshold = 1
-  }
-}
-
 resource "aws_cloudwatch_log_group" "this" {
   name              = var.cloudwatch_log_group_name
   retention_in_days = var.cloudwatch_retention_in_days
@@ -192,9 +181,8 @@ data "aws_ecs_cluster" "this" {
   cluster_name = "${var.cluster_name}-ecs"
 }
 
-data "aws_service_discovery_dns_namespace" "this" {
-  name = "default.${data.aws_ecs_cluster.this.cluster_name}.local"
-  type = "DNS_PRIVATE"
+data "aws_service_discovery_http_namespace" "this" {
+  name = data.aws_ecs_cluster.this.cluster_name
 }
 
 data "aws_route53_zone" "this" {
@@ -202,12 +190,12 @@ data "aws_route53_zone" "this" {
 }
 
 # CloudFront supports US East (N. Virginia) Region only.
-data "aws_acm_certificate" "this" {
-  domain   = var.domain
-  statuses = ["ISSUED"]
+# data "aws_acm_certificate" "this" {
+#   domain   = var.domain
+#   statuses = ["ISSUED"]
 
-  provider = aws.virginia
-}
+#   provider = aws.virginia
+# }
 
 ##########
 # cloudfront
@@ -246,10 +234,10 @@ module "cloudfront" {
     query_string    = true
   }
 
-  viewer_certificate = {
-    acm_certificate_arn = data.aws_acm_certificate.this.arn
-    ssl_support_method  = "sni-only"
-  }
+  # viewer_certificate = {
+  #   acm_certificate_arn = data.aws_acm_certificate.this.arn
+  #   ssl_support_method  = "sni-only"
+  # }
 
 }
 

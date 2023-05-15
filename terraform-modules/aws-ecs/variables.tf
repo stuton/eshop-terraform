@@ -363,6 +363,58 @@ variable "database_allow_major_version_upgrade" {
 }
 
 ################################################################################
+# Elasticache Redis
+################################################################################
+
+variable "redis_cluster_mode_enabled" {
+  type        = bool
+  description = "Enable creation of a native redis cluster."
+  default     = false
+}
+
+variable "redis_engine_version" {
+  default     = "6.x"
+  type        = string
+  description = "The version number of the cache engine to be used for the cache clusters in this replication group."
+}
+
+variable "redis_family" {
+  default     = "redis6.x"
+  type        = string
+  description = "The family of the ElastiCache parameter group."
+}
+
+variable "redis_at_rest_encryption_enabled" {
+  default     = false
+  type        = bool
+  description = "Whether to enable encryption at rest."
+}
+
+variable "redis_transit_encryption_enabled" {
+  default     = false
+  type        = bool
+  description = "Whether to enable encryption in transit."
+}
+
+variable "redis_apply_immediately" {
+  default     = false
+  type        = bool
+  description = "Specifies whether any modifications are applied immediately, or during the next maintenance window."
+}
+
+variable "redis_description" {
+  default     = "Managed by Terraform"
+  type        = string
+  description = "The description of the all resources."
+}
+
+variable "redis_node_type" {
+  default     = "cache.t2.micro"
+  type        = string
+  description = "The compute and memory capacity of the nodes in the node group."
+}
+
+################################################################################
 # Security Groups
 ################################################################################
 

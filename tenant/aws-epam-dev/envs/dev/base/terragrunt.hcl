@@ -41,8 +41,10 @@ inputs = {
   database_create_db_parameter_group   = false
 
   autoscaling_min_size         = 1
-  autoscaling_max_size         = 3
+  autoscaling_max_size         = 5
   autoscaling_desired_capacity = 1
+
+  create_certificate = false
 
   cloudwatch_log_group_name = "/aws/ecs/eshop"
 
