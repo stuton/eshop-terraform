@@ -13,13 +13,13 @@ module "api_gateway" {
   protocol_type = "HTTP"
 
   # Only if you use private subnet for ALB
-  # vpc_links = {
-  #   (var.app_name) = {
-  #     name = var.app_name
-  #     security_group_ids = []
-  #     subnet_ids = [module.vpc.public_subnets[0]]
-  #   }
-  # }
+  vpc_links = {
+    (var.app_name) = {
+      name = var.app_name
+      security_group_ids = []
+      subnet_ids = [module.vpc.private_subnets[0]]
+    }
+  }
 
   cors_configuration = {
     allow_headers = ["*"]

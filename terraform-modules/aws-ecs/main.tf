@@ -79,7 +79,7 @@ module "autoscaling" {
     AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
 
-  vpc_zone_identifier = module.vpc.public_subnets
+  vpc_zone_identifier = module.vpc.private_subnets
 
   health_check_type   = "EC2"
   min_size            = each.value.min_size
@@ -177,8 +177,8 @@ module "vpc" {
   private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 4, k)]
   public_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 48)]
 
-  enable_nat_gateway = false
-  single_nat_gateway = false
+  enable_nat_gateway = true
+  single_nat_gateway = true
   enable_dns_hostnames = true
 
   tags = var.tags
@@ -226,7 +226,7 @@ module "alb_sg" {
   ingress_cidr_blocks = ["0.0.0.0/0"]
 
   egress_rules       = ["all-all"]
-  egress_cidr_blocks = module.vpc.public_subnets_cidr_blocks
+  egress_cidr_blocks = module.vpc.private_subnets_cidr_blocks
 
   tags = var.tags
 }
@@ -256,7 +256,7 @@ module "mq" {
     encryption_enabled         = true
     use_aws_owned_key          = true
     vpc_id                     = module.vpc.vpc_id
-    subnet_ids                 = var.mq_deployment_mode == "SINGLE_INSTANCE" ? [module.vpc.public_subnets[0]] : module.vpc.public_subnets
+    subnet_ids                 = var.mq_deployment_mode == "SINGLE_INSTANCE" ? [module.vpc.private_subnets[0]] : module.vpc.private_subnets
 }
 
 ##################################################################
@@ -300,7 +300,7 @@ module "db" {
 
   # DB subnet group
   create_db_subnet_group = true
-  subnet_ids             = module.vpc.public_subnets
+  subnet_ids             = module.vpc.private_subnets
 
   # DB parameter group
   family = var.database_family
@@ -343,7 +343,7 @@ module "redis" {
   version = "~> 3.0.0"
 
   name_prefix        = var.app_name
-  num_cache_clusters = 2
+  num_cache_clusters = 1
   node_type          = var.redis_node_type
 
   engine_version            = var.redis_engine_version
@@ -359,7 +359,7 @@ module "redis" {
   family            = var.redis_family
   description       = var.redis_description
 
-  subnet_ids = module.vpc.public_subnets
+  subnet_ids = module.vpc.private_subnets
   vpc_id     = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
@@ -380,10 +380,10 @@ module "redis" {
 # Service discovery namespaces
 ################################################################################
 
-resource "aws_service_discovery_http_namespace" "this" {
-  name        = local.cluster_name
-  description = "CloudMap namespace for ${local.cluster_name}"
-  tags        = var.tags
+resource "aws_service_discovery_private_dns_namespace" "this" {
+  name        = "default.${local.cluster_name}.local"
+  description = "Service discovery for default.${local.cluster_name}.local"
+  vpc         = module.vpc.vpc_id
 }
 
 ################################################################################

@@ -1,11 +1,11 @@
 locals {
   env_name   = "dev"
-  account_id = "326106872578"
+  account_id = "549764394001"
   aws_region = "eu-west-3"
 
   domain = "selfpower.shop"
   subdomains = {
-    //api    = "api.${local.domain}"
+    api                      = "http://api.${local.domain}"
     webspa                   = "http://webspa.${local.domain}"
     webmvc                   = "http://webmvc.${local.domain}"
     catalog_api              = "http://catalog-api.${local.domain}"
@@ -21,19 +21,20 @@ locals {
     ordering_backgroundtasks = "http://ordering-backgroundtasks.${local.domain}"
   }
 
+  discovery_service = "default.eshop-ecs.local"
   discovery_services = {
-    webspa                   = "http://webspa"
-    webmvc                   = "http://webmvc"
-    catalog_api              = "http://catalog-api"
-    identity_api             = "http://identity-api"
-    basket_api               = "http://basket-api"
-    ordering_api             = "http://ordering-api"
-    payment_api              = "http://payment-api"
-    ordering_signalrhub      = "http://ordering-signalrhub"
-    webshoppingagg           = "http://webshoppingagg"
-    mobileshoppingagg        = "http://mobileshoppingagg"
-    webhooks_api             = "http://webhooks-api"
-    webhooks_client          = "http://webhooks-client"
-    ordering_backgroundtasks = "http://ordering-backgroundtasks"
+    webspa                   = "http://webspa.${local.discovery_service}"
+    webmvc                   = "http://webmvc.${local.discovery_service}"
+    catalog_api              = "http://catalog-api.${local.discovery_service}"
+    identity_api             = "http://identity-api.${local.discovery_service}"
+    basket_api               = "http://basket-api.${local.discovery_service}"
+    ordering_api             = "http://ordering-api.${local.discovery_service}"
+    payment_api              = "http://payment-api.${local.discovery_service}"
+    ordering_signalrhub      = "http://ordering-signalrhub.${local.discovery_service}"
+    webshoppingagg           = "http://webshoppingagg.${local.discovery_service}"
+    mobileshoppingagg        = "http://mobileshoppingagg.${local.discovery_service}"
+    webhooks_api             = "http://webhooks-api.${local.discovery_service}"
+    webhooks_client          = "http://webhooks-client.${local.discovery_service}"
+    ordering_backgroundtasks = "http://ordering-backgroundtasks.${local.discovery_service}"
   }
 }

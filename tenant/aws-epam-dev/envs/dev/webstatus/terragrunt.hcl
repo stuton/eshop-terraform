@@ -15,6 +15,7 @@ locals {
   cloudwatch_log_group_name     = "/aws/ecs/eshop/webstatus"
   route_key                     = "ANY /c/{proxy+}"
   autoscaling_capacity_provider = "on-demand-micro"
+  health_check_path             = "/"
 }
 
 dependency "ecs" {
@@ -33,6 +34,7 @@ inputs = {
   route_key                     = local.route_key
   autoscaling_capacity_provider = local.autoscaling_capacity_provider
   cloudwatch_log_group_name     = local.cloudwatch_log_group_name
+  health_check_path             = local.health_check_path
   container_definitions = templatefile("container_definitions.json", {
     container_name            = local.service_name
     container_port            = 80

@@ -16,16 +16,8 @@ module "ecs_service" {
   
   requires_compatibilities = ["EC2"]
 
-  service_connect_configuration = {
-    namespace = data.aws_service_discovery_http_namespace.this.arn
-    service = {
-      client_alias = {
-        port     = var.container_port
-        dns_name = var.container_name
-      }
-      port_name      = "${var.container_name}-${var.container_port}"
-      discovery_name = var.container_name
-    }
+  service_registries = {
+    registry_arn = aws_service_discovery_service.this.arn
   }
 
   create_iam_role = false
@@ -53,7 +45,7 @@ module "ecs_service" {
     }
   }
 
-  subnet_ids = data.aws_subnets.public.ids
+  subnet_ids = data.aws_subnets.private.ids
 
   security_group_rules = {
     alb_http_ingress = {
@@ -61,8 +53,16 @@ module "ecs_service" {
       from_port                = var.container_port
       to_port                  = var.container_port
       protocol                 = "tcp"
-      description              = "Service port"
+      description              = "Allow http traffic from alb to ec2"
       source_security_group_id = data.aws_security_group.this.id
+    }
+    ec2_http_ingress = {
+      type                     = "ingress"
+      from_port                = var.container_port
+      to_port                  = var.container_port
+      protocol                 = "tcp"
+      description              = "Allow http traffic from ec2 to ec2"
+      cidr_blocks =  [for s in data.aws_subnet.private : s.cidr_block]
     }
     egress_all = {
       type        = "egress"
@@ -104,11 +104,12 @@ module "service_alb" {
   target_groups = [
     {
       name             = var.name
+      target_type      = "ip"
       backend_protocol = "HTTP"
       backend_port     = var.container_port
       health_check = {
-        path      = "/"
-        matcher   = "200-302"
+        path      = var.health_check_path
+        matcher   = "200-399"
         interval  = 30
       }
     },
@@ -170,6 +171,18 @@ data "aws_subnets" "public" {
   }
 }
 
+data "aws_subnets" "private" {
+  filter {
+    name   = "tag:Name"
+    values = ["eshop-vpc-private-*"]
+  }
+}
+
+data "aws_subnet" "private" {
+  for_each = toset(data.aws_subnets.private.ids)
+  id       = each.value
+}
+
 data "aws_security_group" "this" {
   filter {
     name   = "tag:Name"
@@ -181,8 +194,9 @@ data "aws_ecs_cluster" "this" {
   cluster_name = "${var.cluster_name}-ecs"
 }
 
-data "aws_service_discovery_http_namespace" "this" {
-  name = data.aws_ecs_cluster.this.cluster_name
+data "aws_service_discovery_dns_namespace" "this" {
+  name = "default.${var.cluster_name}-ecs.local"
+  type = "DNS_PRIVATE"
 }
 
 data "aws_route53_zone" "this" {
@@ -263,4 +277,23 @@ module "records" {
       }
     },
   ]
+}
+
+resource "aws_service_discovery_service" "this" {
+  name = var.name
+
+  dns_config {
+    namespace_id = data.aws_service_discovery_dns_namespace.this.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
 }

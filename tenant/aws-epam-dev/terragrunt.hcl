@@ -11,8 +11,8 @@ locals {
   subdomains = local.env_vars.locals.subdomains
   discovery_services = local.env_vars.locals.discovery_services
 
-  bucket     = join("-", ["terraform-state-${local.tenant}", "${local.env_name}", "${local.aws_region}"])
-  dynamodb_table = join("-", ["terraform-locks-${local.tenant}", "${local.env_name}", "${local.aws_region}"])
+  bucket     = join("-", ["terragrunt-state-${local.tenant}", "${local.env_name}", "${local.aws_region}"])
+  dynamodb_table = join("-", ["terragrunt-locks-${local.tenant}", "${local.env_name}", "${local.aws_region}"])
 
   default_tags = {
     Tenant    = local.tenant

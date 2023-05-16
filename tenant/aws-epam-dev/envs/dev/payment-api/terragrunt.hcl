@@ -21,7 +21,7 @@ dependency "ecs" {
   config_path = "../base"
 
   mock_outputs = {
-    mq_connection_uri        = "fake"
+    mq_connection_uri = "fake"
   }
 }
 

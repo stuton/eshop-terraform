@@ -41,8 +41,8 @@ inputs = {
   database_create_db_parameter_group   = false
 
   autoscaling_min_size         = 1
-  autoscaling_max_size         = 5
-  autoscaling_desired_capacity = 1
+  autoscaling_max_size         = 14
+  autoscaling_desired_capacity = 3
 
   create_certificate = false
 

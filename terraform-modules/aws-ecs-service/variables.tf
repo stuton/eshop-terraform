@@ -100,7 +100,7 @@ variable "cloudwatch_retention_in_days" {
 
 variable "network_mode" {
   type        = string
-  default     = "bridge"
+  default     = "awsvpc"
   description = "description"
 }
 
@@ -117,6 +117,12 @@ variable "service_memory" {
 variable "route_key" {
   type        = string
   default     = ""
+  description = "description"
+}
+
+variable "health_check_path" {
+  type        = string
+  default     = "/hc"
   description = "description"
 }
 

@@ -26,27 +26,30 @@ dependency "ecs" {
   }
 }
 
-# dependency "api_gateway" {
-#   config_path = "../api-gateway"
+dependency "api_gateway" {
+  config_path = "../api-gateway"
 
-#   mock_outputs = {
-#     apigatewayv2_id = "fake"
-#   }
-# }
+  mock_outputs = {
+    apigatewayv2_id = "fake"
+  }
+}
 
 inputs = {
-  name           = local.service_name
-  container_name = local.service_name
-  service_cpu    = 128
-  service_memory = 256
-  route_key      = local.route_key
-  //apigatewayv2_id                 = dependency.api_gateway.outputs.apigatewayv2_id
-  autoscaling_capacity_provider = local.autoscaling_capacity_provider
-  cloudwatch_log_group_name     = local.cloudwatch_log_group_name
-  domain                        = include.root.locals.domain
+  name                            = local.service_name
+  container_name                  = local.service_name
+  service_cpu                     = 128
+  service_memory                  = 256
+  route_key                       = local.route_key
+  create_apigatewayv2_integration = true
+  apigatewayv2_id                 = dependency.api_gateway.outputs.apigatewayv2_id
+  route_key                       = local.route_key
+  autoscaling_capacity_provider   = local.autoscaling_capacity_provider
+  cloudwatch_log_group_name       = local.cloudwatch_log_group_name
+  domain                          = include.root.locals.domain
   container_definitions = templatefile("container_definitions.json", {
     container_name            = local.service_name
     container_port            = 80
+    container_grpc_port       = 81
     image                     = local.image_name
     service_bus_host          = dependency.ecs.outputs.mq_connection_uri
     cloudwatch_log_group_name = local.cloudwatch_log_group_name

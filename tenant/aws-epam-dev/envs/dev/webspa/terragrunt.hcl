@@ -15,6 +15,7 @@ locals {
   cloudwatch_log_group_name     = "/aws/ecs/eshop/webspa"
   route_key                     = "ANY /site/{proxy+}"
   autoscaling_capacity_provider = "on-demand-micro"
+  health_check_path             = "/"
 }
 
 inputs = {
@@ -26,6 +27,7 @@ inputs = {
   route_key                     = local.route_key
   autoscaling_capacity_provider = local.autoscaling_capacity_provider
   cloudwatch_log_group_name     = local.cloudwatch_log_group_name
+  health_check_path             = local.health_check_path
   domain                        = include.root.locals.domain
   container_definitions = templatefile("container_definitions.json", {
     container_name            = local.name
@@ -34,5 +36,6 @@ inputs = {
     region                    = include.root.locals.aws_region
     cloudwatch_log_group_name = local.cloudwatch_log_group_name
     subdomains                = include.root.locals.subdomains
+    discovery_services        = include.root.locals.discovery_services
   })
 }

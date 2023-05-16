@@ -1,13 +1,13 @@
 # Installation
 
+Ensure that [Terraform](https://developer.hashicorp.com/terraform/downloads) and [Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/) are set up and installed in your environment. After that, you may launch the scripts listed below from the /src/ directory and begin using the eShopOnContainers right away.
+
 ## AWS
-1. Create public hosted zone with your domain
-2. cd tenant/aws-epam-dev/envs/dev
-3. terragrunt run-all apply --terragrunt-non-interactive --terragrunt-include-external-dependencies
+Instruction for AWS here: 
 
 ### Getting key_pair for EC2 instances
 ```
-aws ssm get-parameters --with-decryption --names /autoscaling/eshop/key_pair | jq -c '.Parameters[].Value'
+aws ssm get-parameters --with-decryption --names /autoscaling/eshop/key_pair | jq -rc '.Parameters[].Value'
 ```
 
 ## Microsoft Azure

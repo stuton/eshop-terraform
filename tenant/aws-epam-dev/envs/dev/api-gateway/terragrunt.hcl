@@ -20,7 +20,7 @@ inputs = {
   name               = "eshop-api"
   description        = "API gateway for eshop application"
   domain             = include.root.locals.domain
-  subdomain          = include.root.locals.subdomains.api
+  subdomain          = "api" //include.root.locals.subdomains.api
 
   cloudwatch_log_group_name = "/aws/ecs/eshop"
 
