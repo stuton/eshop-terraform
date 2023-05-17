@@ -10,7 +10,7 @@ jobs:
       pull-requests: write
 
     env:
-      TF_ROOT: tenant/aws-epam-dev
+      TF_ROOT: providers/aws
 
     steps:
       - name: Setup Infracost
