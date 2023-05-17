@@ -27,9 +27,14 @@ git clone https://github.com/stuton/eShopOnContainers.git
 ```
 2. Go to our environment folder
 ```
-cd tenant/aws-epam-dev/envs/dev
+cd providers/aws/envs/dev
 ```
-2. Edit env.hcl file to your settings **account_id**, **region** and **domain**
+2. Edit env.hcl file to your settings:
+ * account_id
+ * region
+ * bucket_name
+ * dynamodb_table_name
+ * domain
 3. Running infrastructure (ECS cluster, database, rabbitmq, etc..)
 ```
 TF_VAR_image_tag=linux-terraform terragrunt run-all apply --terragrunt-non-interactive --terragrunt-include-dir api-gateway --terragrunt-include-dir base
@@ -37,6 +42,16 @@ TF_VAR_image_tag=linux-terraform terragrunt run-all apply --terragrunt-non-inter
 4. Running ECS services
 ```
 TF_VAR_image_tag=linux-terraform terragrunt run-all apply --terragrunt-non-interactive --terragrunt-exclude-dir api-gateway --terragrunt-exclude-dir base
+```
+
+### Destroy steps
+1. Destroy ECS services
+```
+TF_VAR_image_tag=linux-terraform terragrunt run-all destroy --terragrunt-non-interactive --terragrunt-exclude-dir api-gateway --terragrunt-exclude-dir base
+```
+2. Destroy infrastructure (ECS cluster, database, rabbitmq, etc..)
+```
+TF_VAR_image_tag=linux-terraform terragrunt run-all destroy --terragrunt-non-interactive --terragrunt-include-dir api-gateway --terragrunt-include-dir base
 ```
 
 ## Options

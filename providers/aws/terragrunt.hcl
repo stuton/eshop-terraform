@@ -2,21 +2,19 @@ locals {
   # Automatically load environment-level variables
   env_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 
-  tenant     = "aws-epam-dev"
-  account_id = local.env_vars.locals.account_id
-  aws_region = local.env_vars.locals.aws_region
-  env_name = local.env_vars.locals.env_name
+  account_id          = local.env_vars.locals.account_id
+  aws_region          = local.env_vars.locals.aws_region
+  env_name            = local.env_vars.locals.env_name
+  bucket_name         = local.env_vars.locals.bucket_name
+  dynamodb_table_name = local.env_vars.locals.dynamodb_table_name
 
-  domain = local.env_vars.locals.domain
-  subdomains = local.env_vars.locals.subdomains
+  domain             = local.env_vars.locals.domain
+  subdomains         = local.env_vars.locals.subdomains
   discovery_services = local.env_vars.locals.discovery_services
 
-  bucket     = join("-", ["terragrunt-state-${local.tenant}", "${local.env_name}", "${local.aws_region}"])
-  dynamodb_table = join("-", ["terragrunt-locks-${local.tenant}", "${local.env_name}", "${local.aws_region}"])
-
   default_tags = {
-    Tenant    = local.tenant
-    ManagedBy = "terraform"
+    Environment = local.env_vars.locals.env_name
+    ManagedBy   = "terraform"
   }
 
 }
@@ -60,10 +58,10 @@ remote_state {
   backend = "s3"
   config = {
     encrypt        = true
-    bucket         = local.bucket
+    bucket         = local.bucket_name
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = local.aws_region
-    dynamodb_table = local.dynamodb_table
+    dynamodb_table = local.dynamodb_table_name
   }
   generate = {
     path      = "backend.tf"

@@ -3,6 +3,9 @@ locals {
   account_id = "549764394001"
   aws_region = "eu-west-3"
 
+  bucket_name    = "terragrunt-state-aws-epam-dev-dev-eu-west-3"
+  dynamodb_table_name = "terragrunt-locks-aws-epam-dev-dev-eu-west-3"
+
   domain = "selfpower.shop"
   subdomains = {
     api                      = "https://api.${local.domain}"

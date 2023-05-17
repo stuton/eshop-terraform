@@ -11,11 +11,9 @@ locals {
   deployment_storage_resource_group_name = local.env_vars.locals.deployment_storage_resource_group_name
   deployment_storage_account_name        = local.env_vars.locals.deployment_storage_account_name
 
-  tenant = "azure-epam-dev"
-
   default_tags = {
-    Tenant    = local.tenant
-    ManagedBy = "terraform"
+    Environment    = local.env_vars.locals.env_name
+    ManagedBy      = "terraform"
   }
 
 }

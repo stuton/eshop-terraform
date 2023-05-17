@@ -16,10 +16,10 @@ locals {
 }
 
 inputs = {
-  name               = "eshop-api"
-  description        = "API gateway for eshop application"
-  domain             = include.root.locals.domain
-  subdomain          = "api" //include.root.locals.subdomains.api
+  name        = "eshop-api"
+  description = "API gateway for eshop application"
+  domain      = include.root.locals.domain
+  subdomain   = "api" //include.root.locals.subdomains.api
 
   tags = lookup(local, "tags", null) != null ? merge(local.tags, local.common_tags) : local.common_tags
 }
