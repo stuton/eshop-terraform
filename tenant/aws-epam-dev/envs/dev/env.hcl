@@ -5,7 +5,7 @@ locals {
 
   domain = "selfpower.shop"
   subdomains = {
-    api                      = "http://api.${local.domain}"
+    api                      = "https://api.${local.domain}"
     webspa                   = "http://webspa.${local.domain}"
     webmvc                   = "http://webmvc.${local.domain}"
     catalog_api              = "http://catalog-api.${local.domain}"

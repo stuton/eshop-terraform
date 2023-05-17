@@ -26,6 +26,14 @@ dependency "ecs" {
   }
 }
 
+dependency "api_gateway" {
+  config_path = "../api-gateway"
+
+  mock_outputs = {
+    apigatewayv2_id = "fake"
+  }
+}
+
 inputs = {
   name                            = local.service_name
   container_name                  = local.service_name

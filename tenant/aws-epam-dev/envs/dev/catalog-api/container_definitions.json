@@ -20,7 +20,7 @@
   ],
   "environment" : [
     {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
-    {"name": "PicBaseUrl", "value": "${subdomains.catalog_api}/c/api/v1/catalog/items/[0]/pic/"},
+    {"name": "PicBaseUrl", "value": "${subdomains.api}/c/api/v1/catalog/items/[0]/pic/"},
     {"name": "ConnectionString", "value": "${connection_string}"},
     {"name": "UseCustomizationData", "value": "True"},
     {"name": "AzureServiceBusEnabled", "value": "False"},

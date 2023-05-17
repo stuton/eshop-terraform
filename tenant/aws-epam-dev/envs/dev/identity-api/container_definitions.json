@@ -19,7 +19,7 @@
     {"name": "XamarinCallback", "value": "${subdomains.identity_api}/xamarincallback"},
     {"name": "MvcClient", "value": "${subdomains.webmvc}"},
     {"name": "BasketApiClient", "value": "${subdomains.basket_api}"},
-    {"name": "OrderingApiClient", "value": "${subdomains.ordering_api}"},
+    {"name": "OrderingApiClient", "value": "${subdomains.api}"},
     {"name": "MobileShoppingAggClient", "value": "${subdomains.webshoppingagg}"},
     {"name": "WebhooksApiClient", "value": "${subdomains.webhooks_api}"},
     {"name": "WebhooksWebClient", "value": "${subdomains.webhooks_client}"},

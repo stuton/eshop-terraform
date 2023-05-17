@@ -18,9 +18,7 @@
     {"name": "UseCustomizationData", "value": "True"},
     {"name": "IdentityUrl", "value": "${subdomains.identity_api}"},
     {"name": "IdentityUrlHC", "value": "${discovery_services.identity_api}/hc"},
-    {"name": "PurchaseUrl", "value": "${subdomains.catalog_api}"},
-    {"name": "BasketUrl", "value": "${subdomains.basket_api}"},
-    {"name": "OrdersUrl", "value": "${subdomains.ordering_api}"},
+    {"name": "PurchaseUrl", "value": "${subdomains.api}"},
     {"name": "SignalrHubUrl", "value": "${subdomains.ordering_signalrhub}"}
   ],
   "enable_cloudwatch_logging": false,

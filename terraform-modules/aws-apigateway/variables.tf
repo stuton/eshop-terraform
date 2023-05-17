@@ -34,6 +34,12 @@ variable "subdomain" {
   default     = ""
 }
 
+variable "create_certificate" {
+  description = "Whether to create ACM certificate"
+  type        = bool
+  default     = true
+}
+
 variable "cloudwatch_log_group_name" {
   type        = string
   description = "description"
