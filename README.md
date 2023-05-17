@@ -4,6 +4,25 @@
 ## Microsoft Azure
 * Instruction for Azure [here](./providers/azure/README.md)
 
+# Code structure
+The code in this repo uses the following folder hierarchy:
+```
+├── providers
+│   ├── <provider>
+│   │   ├── README.md
+│   │   ├── envs
+│   │   │   ├── <environment>
+│   │   │   │   ├── env.hcl
+│   │   │   │   ├── <resource>
+│   │   │   │   │   └── terragrunt.hcl
+│   │   └── terragrunt.hcl
+└── terraform-modules
+    └── <resource>
+        ├── main.tf
+        ├── outputs.tf
+        └── variables.tf
+```
+
 ## Repository overview
 
 This repository has 3 main folders
