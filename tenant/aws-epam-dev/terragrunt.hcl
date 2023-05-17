@@ -40,20 +40,20 @@ provider "aws" {
 EOF
 }
 
-# generate "versions" {
-#   path      = "versions_override.tf"
-#   if_exists = "overwrite_terragrunt"
-#   contents  = <<EOF
-#     terraform {
-#       required_providers {
-#         cloudflare = {
-#           source = "cloudflare/cloudflare"
-#           version = "2.12.0"
-#         }
-#       }
-#     }
-# EOF
-# }
+generate "versions" {
+  path      = "versions_override.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+    terraform {
+      required_providers {
+        aws = {
+          source  = "hashicorp/aws"
+          version = "4.67.0"
+        }
+      }
+    }
+EOF
+}
 
 # Configure Terragrunt to automatically store tfstate files in an S3 bucket
 remote_state {
