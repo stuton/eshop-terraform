@@ -3,10 +3,10 @@
 Ensure that [Terraform](https://developer.hashicorp.com/terraform/downloads) and [Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/) are set up and installed in your environment. After that, you may launch the scripts listed below from the /src/ directory and begin using the eShopOnContainers right away.
 
 ## AWS
-* Instruction for AWS [here](https://github.com/stuton/eshop-terraform/blob/main/tenant/aws-epam-dev/README.md)
+* Instruction for AWS [here](./tenant/aws-epam-dev/README.md)
 
 ## Microsoft Azure
-* Instruction for Azure [here](https://github.com/stuton/eshop-terraform/blob/main/tenant/azure-epam-dev/README.md)
+* Instruction for Azure [here](./tenant/azure-epam-dev/README.md)
 
 ## Repository overview
 
