@@ -1,91 +1,299 @@
-resource "aws_ecs_task_definition" "this" {
-  family = var.name
-  container_definitions = jsonencode([
+################################################################################
+# Service
+# https://github.com/terraform-aws-modules/terraform-aws-ecs/blob/master/variables.tf
+# Fargate configuration: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-cpu-memory-error.html
+################################################################################
+
+module "ecs_service" {
+  source  = "terraform-aws-modules/ecs/aws//modules/service"
+  version = "~> 5.0"
+
+  name        = var.name
+  cluster_arn = data.aws_ecs_cluster.this.arn
+  cpu    = var.service_cpu
+  memory = var.service_memory
+  network_mode = var.network_mode
+  
+  requires_compatibilities = ["EC2"]
+
+  service_registries = {
+    registry_arn = aws_service_discovery_service.this.arn
+  }
+
+  create_iam_role = false
+
+  container_definitions = {
+    (var.name) = jsondecode(var.container_definitions)
+  }
+
+  capacity_provider_strategy = {
+    # On-demand instances
+    default = {
+      capacity_provider = var.autoscaling_capacity_provider
+      weight            = 1
+      base              = 1
+    }
+  }
+
+  //assign_public_ip = true
+
+  load_balancer = {
+    service = {
+      target_group_arn = element(module.service_alb.target_group_arns, 0)
+      container_name   = var.container_name
+      container_port   = var.container_port
+    }
+  }
+
+  subnet_ids = data.aws_subnets.private.ids
+
+  security_group_rules = {
+    alb_http_ingress = {
+      type                     = "ingress"
+      from_port                = var.container_port
+      to_port                  = var.container_port
+      protocol                 = "tcp"
+      description              = "Allow http traffic from alb to ec2"
+      source_security_group_id = data.aws_security_group.this.id
+    }
+    ec2_http_ingress = {
+      type                     = "ingress"
+      from_port                = var.container_port
+      to_port                  = var.container_port
+      protocol                 = "tcp"
+      description              = "Allow http traffic from ec2 to ec2"
+      cidr_blocks =  [for s in data.aws_subnet.private : s.cidr_block]
+    }
+    egress_all = {
+      type        = "egress"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+
+  tags = var.tags
+}
+
+##################################################################
+# Application Load Balancer
+# https://github.com/terraform-aws-modules/terraform-aws-alb/blob/master/variables.tf
+##################################################################
+
+module "service_alb" {
+  source  = "terraform-aws-modules/alb/aws"
+  version = "~> 8.3"
+
+  name               = "${var.name}-alb"
+  load_balancer_type = var.load_balancer_type
+
+  vpc_id  = data.aws_vpc.this.id
+  subnets = data.aws_subnets.public.ids
+  
+  security_groups = [data.aws_security_group.this.id]
+
+  http_tcp_listeners = [
     {
-      name      = var.name
-      image     = "${var.image}:${var.image_tag}"
-      essential = true
-      portMappings = [
-        {
-          containerPort = 80
-          hostPort      = 80
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs",
-        options = {
-            awslogs-region = "eu-west-3",
-            awslogs-group = "${var.aws_cloudwatch_log_group_name}",
-            awslogs-stream-prefix = "ec2"
-        }
+      port               = var.container_port
+      protocol           = "HTTP"
+      target_group_index = 0
+    },
+  ]
+
+  target_groups = [
+    {
+      name             = var.name
+      target_type      = "ip"
+      backend_protocol = "HTTP"
+      backend_port     = var.container_port
+      health_check = {
+        path      = var.health_check_path
+        matcher   = "200-399"
+        interval  = 30
+      }
+    },
+  ]
+
+  tags = var.tags
+}
+
+##################################################################
+# API GATEWAY
+##################################################################
+
+resource "aws_apigatewayv2_integration" "this" {
+  count            = var.create_apigatewayv2_integration ? 1 : 0
+  api_id           = var.apigatewayv2_id
+  description      = "Example with a load balancer"
+  integration_type = "HTTP_PROXY"
+  integration_method = "ANY"
+  integration_uri  = "http://${module.service_alb.lb_dns_name}"
+
+  # connection_type    = "VPC_LINK"
+  # connection_id      = var.apigatewayv2_vpc_link_id
+
+  request_parameters = {
+    "overwrite:path"    = "$request.path"
+  }
+}
+
+resource "aws_apigatewayv2_route" "this" {
+  count     = var.create_apigatewayv2_integration ? 1 : 0
+  api_id    = var.apigatewayv2_id
+  route_key = var.route_key
+
+  target = "integrations/${aws_apigatewayv2_integration.this[0].id}"
+}
+
+################################################################################
+# Supporting Resources
+################################################################################
+
+resource "aws_cloudwatch_log_group" "this" {
+  name              = var.cloudwatch_log_group_name
+  retention_in_days = var.cloudwatch_retention_in_days
+
+  tags = var.tags
+}
+
+data "aws_vpc" "this" {
+  filter {
+    name   = "tag:Name"
+    values = ["eshop-*"]
+  }
+}
+
+data "aws_subnets" "public" {
+  filter {
+    name   = "tag:Name"
+    values = ["eshop-vpc-public-*"]
+  }
+}
+
+data "aws_subnets" "private" {
+  filter {
+    name   = "tag:Name"
+    values = ["eshop-vpc-private-*"]
+  }
+}
+
+data "aws_subnet" "private" {
+  for_each = toset(data.aws_subnets.private.ids)
+  id       = each.value
+}
+
+data "aws_security_group" "this" {
+  filter {
+    name   = "tag:Name"
+    values = ["eshop-alb-sg"]
+  }
+}
+
+data "aws_ecs_cluster" "this" {
+  cluster_name = "${var.cluster_name}-ecs"
+}
+
+data "aws_service_discovery_dns_namespace" "this" {
+  name = "default.${var.cluster_name}-ecs.local"
+  type = "DNS_PRIVATE"
+}
+
+data "aws_route53_zone" "this" {
+  name = var.domain
+}
+
+# CloudFront supports US East (N. Virginia) Region only.
+# data "aws_acm_certificate" "this" {
+#   domain   = var.domain
+#   statuses = ["ISSUED"]
+
+#   provider = aws.virginia
+# }
+
+##########
+# cloudfront
+# https://github.com/terraform-aws-modules/terraform-aws-cloudfront/blob/master/variables.tf
+##########
+
+module "cloudfront" {
+  source = "terraform-aws-modules/cloudfront/aws"
+
+  aliases = ["${var.name}.${var.domain}"]
+
+  comment             = "My awesome ${var.name} CloudFront"
+  create_distribution = var.create_distribution
+  enabled             = var.enabled_cloudfront
+  price_class         = var.cloudfront_price_class
+
+  origin = {
+    alb = {
+      domain_name = module.service_alb.lb_dns_name
+      custom_origin_config = {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "http-only"
+        origin_ssl_protocols   = ["TLSv1.1", "TLSv1.2"]
       }
     }
-  ])
-
-  # Fargate configuration: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-cpu-memory-error.html
-  cpu = 512
-  memory    = 1024
-  network_mode = "awsvpc"
-
-  execution_role_arn = "arn:aws:iam::326106872578:role/ecsTaskExecutionRole"
-
-  runtime_platform {
-    operating_system_family = "LINUX"
   }
 
-  requires_compatibilities = ["FARGATE"]
+  default_cache_behavior = {
+    target_origin_id           = "alb"
+    viewer_protocol_policy     = "allow-all"
+
+    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    cached_methods  = ["GET", "HEAD"]
+    compress        = true
+    query_string    = true
+  }
+
+  # viewer_certificate = {
+  #   acm_certificate_arn = data.aws_acm_certificate.this.arn
+  #   ssl_support_method  = "sni-only"
+  # }
+
 }
 
-resource "aws_ecs_service" "this" {
-  name            = var.name
-  cluster         = var.cluster_id
-  task_definition = aws_ecs_task_definition.this.arn
-  desired_count   = 1
+##################################################################
+# Route53
+# https://github.com/terraform-aws-modules/terraform-aws-route53/blob/master/modules/records/variables.tf
+##################################################################
 
-  network_configuration {
-    subnets = var.public_subnets
-    security_groups = []
-    assign_public_ip = true
-  }
+module "records" {
+  source  = "terraform-aws-modules/route53/aws//modules/records"
+  version = "~> 2.0"
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.this.arn
-    container_name   = var.name
-    container_port   = 80
-  }
+  zone_id = data.aws_route53_zone.this.zone_id
 
-  lifecycle {
-    ignore_changes = [deployment_circuit_breaker, deployment_controller, capacity_provider_strategy]
-  }
+  records = [
+    {
+      name = var.name
+      type = "A"
+      alias = {
+        name    = coalesce(module.cloudfront.cloudfront_distribution_domain_name, module.service_alb.lb_dns_name)
+        zone_id = coalesce(module.cloudfront.cloudfront_distribution_hosted_zone_id, module.service_alb.lb_zone_id)
+        evaluate_target_health = false
+      }
+    },
+  ]
 }
 
-resource "aws_lb_listener" "front_end" {
-  load_balancer_arn = var.lb_id
-  port              = "80"
-  protocol          = "HTTP"
+resource "aws_service_discovery_service" "this" {
+  name = var.name
 
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.this.arn
-  }
-}
+  dns_config {
+    namespace_id = data.aws_service_discovery_dns_namespace.this.id
 
-resource "aws_lb_target_group" "this" {
-  name = "ecs-tg-${var.name}"
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
 
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
-
-  health_check {
-    path                = "/"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
+    routing_policy = "MULTIVALUE"
   }
 
-  load_balancing_cross_zone_enabled = false
-  deregistration_delay = 300
+  health_check_custom_config {
+    failure_threshold = 1
+  }
 }

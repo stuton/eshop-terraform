@@ -1,0 +1,50 @@
+{
+  "name"      : "${container_name}",
+  "image"     : "${image}",
+  "essential" : true,
+  "cpu": 64,
+  "memory": 128,
+  "port_mappings" : [
+    {
+      "name": "${container_name}-${container_port}",
+      "containerPort": 80,
+      "hostPort": 80,
+      "protocol": "tcp"
+    },
+    {
+      "name": "${container_name}-${container_grpc_port}",
+      "containerPort": 81,
+      "hostPort": 81,
+      "protocol": "tcp"
+    }
+  ],
+  "environment" : [
+    {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
+    {"name": "ASPNETCORE_URLS", "value": "http://0.0.0.0:80"},
+    {"name": "ConnectionString", "value": "${connection_string}"},
+    {"name": "IdentityUrl", "value": "${discovery_services.identity_api}"},
+    {"name": "IdentityUrlExternal", "value": "${subdomains.identity_api}"},
+    {"name": "UseCustomizationData", "value": "True"},
+    {"name": "AzureServiceBusEnabled", "value": "False"},
+    {"name": "CheckUpdateTime", "value": "30000"},
+    {"name": "PATH_BASE", "value": "/o"},
+    {"name": "GRPC_PORT", "value": "81"},
+    {"name": "PORT", "value": "80"}
+  ],
+  "secrets": [
+    {
+      "name": "EventBusConnection",
+      "valueFrom": "${service_bus_host}"
+    }
+  ],
+  "enable_cloudwatch_logging": false,
+  "readonly_root_filesystem": false,
+  "log_configuration" : {
+    "logDriver" : "awslogs",
+    "options" : {
+        "awslogs-region" : "${region}",
+        "awslogs-group" : "${cloudwatch_log_group_name}",
+        "awslogs-stream-prefix" : "ecs"
+    }
+  }
+}

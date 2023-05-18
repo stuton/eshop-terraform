@@ -1,0 +1,41 @@
+{
+  "name"      : "${container_name}",
+  "image"     : "${image}",
+  "essential" : true,
+  "cpu": 64,
+  "memory": 128,
+  "port_mappings" : [
+    {
+      "name": "${container_name}-${container_port}",
+      "containerPort": 80,
+      "hostPort": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "environment" : [
+    {"name": "ASPNETCORE_ENVIRONMENT", "value": "Development"},
+    {"name": "urls__basket", "value": "${discovery_services.basket_api}"},
+    {"name": "urls__catalog", "value": "${discovery_services.catalog_api}"},
+    {"name": "urls__orders", "value": "${discovery_services.ordering_api}"},
+    {"name": "urls__identity", "value": "${discovery_services.identity_api}"},
+    {"name": "urls__grpcBasket", "value": "${discovery_services.basket_api}:81"},
+    {"name": "urls__grpcCatalog", "value": "${discovery_services.catalog_api}:81"},
+    {"name": "urls__grpcOrdering", "value": "${discovery_services.ordering_api}:81"},
+    {"name": "CatalogUrlHC", "value": "${discovery_services.catalog_api}/hc"},
+    {"name": "OrderingUrlHC", "value": "${discovery_services.ordering_api}/hc"},
+    {"name": "IdentityUrlHC", "value": "${discovery_services.identity_api}/hc"},
+    {"name": "BasketUrlHC", "value": "${discovery_services.basket_api}/hc"},
+    {"name": "PaymentUrlHC", "value": "${discovery_services.payment_api}/hc"},
+    {"name": "IdentityUrlExternal", "value": "${subdomains.identity_api}"}
+  ],
+  "enable_cloudwatch_logging": false,
+  "readonly_root_filesystem": false,
+  "log_configuration" : {
+    "logDriver" : "awslogs",
+    "options" : {
+        "awslogs-region" : "${region}",
+        "awslogs-group" : "${cloudwatch_log_group_name}",
+        "awslogs-stream-prefix" : "ecs"
+    }
+  }
+}

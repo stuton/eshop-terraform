@@ -3,3 +3,5 @@
 .terraform
 .terragrunt-cache
 .terraform.lock.hcl
+
+.infracost
