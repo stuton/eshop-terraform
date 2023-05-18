@@ -28,33 +28,9 @@ variable "container_port" {
   description = "description"
 }
 
-variable "cluster_id" {
-  description = "ID that identifies the cluster"
-  type        = string
-  default     = ""
-}
-
-variable "private_subnets" {
-  description = "A list of private subnets inside the VPC"
-  type        = list(string)
-  default     = []
-}
-
 ################################################################################
 # ELB
 ################################################################################
-
-variable "create_alb" {
-  description = "Determines whether resources will be created (affects all resources)"
-  type        = bool
-  default     = true
-}
-
-variable "load_balancer_name" {
-  description = "The resource name and Name tag of the load balancer."
-  type        = string
-  default     = ""
-}
 
 variable "load_balancer_type" {
   description = "The type of load balancer to create. Possible values are application or network."
@@ -71,7 +47,7 @@ variable "create_apigatewayv2_integration" {
 variable "apigatewayv2_id" {
   type        = string
   description = "description"
-  default = ""
+  default     = ""
 }
 
 variable "autoscaling_capacity_provider" {

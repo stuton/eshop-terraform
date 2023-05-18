@@ -39,7 +39,6 @@ inputs = {
   service_memory                  = 256
   name                            = local.service_name
   container_name                  = local.service_name
-  image                           = local.image_name
   cloudwatch_log_group_name       = local.cloudwatch_log_group_name
   autoscaling_capacity_provider   = local.autoscaling_capacity_provider
   create_apigatewayv2_integration = true

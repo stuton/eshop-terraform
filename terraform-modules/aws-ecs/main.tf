@@ -1,19 +1,19 @@
 data "aws_availability_zones" "available" {}
 
 locals {
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+  azs = slice(data.aws_availability_zones.available.names, 0, 3)
 
   vpc_name_needed = var.create_vpc && length(var.vpc_name) == 0
-  vpc_name = local.vpc_name_needed ? "${var.app_name}-vpc" : ""
+  vpc_name        = local.vpc_name_needed ? "${var.app_name}-vpc" : ""
 
   cluster_name_needed = var.create_cluster && length(var.cluster_name) == 0
-  cluster_name = local.cluster_name_needed ? "${var.app_name}-ecs" : ""
+  cluster_name        = local.cluster_name_needed ? "${var.app_name}-ecs" : ""
 
   mq_broker_name_needed = var.create_mq && length(var.mq_broker_name) == 0
-  mq_broker_name = local.mq_broker_name_needed ? "${var.app_name}-mq" : ""
+  mq_broker_name        = local.mq_broker_name_needed ? "${var.app_name}-mq" : ""
 
   alb_sg_name_needed = var.create_alb_sg && length(var.alb_sg_name) == 0
-  alb_sg_name = local.alb_sg_name_needed ? "${var.app_name}-alb-sg" : ""
+  alb_sg_name        = local.alb_sg_name_needed ? "${var.app_name}-alb-sg" : ""
 }
 
 #########################################
@@ -81,10 +81,10 @@ module "autoscaling" {
 
   vpc_zone_identifier = module.vpc.private_subnets
 
-  health_check_type   = "EC2"
-  min_size            = each.value.min_size
-  max_size            = each.value.max_size
-  desired_capacity    = each.value.desired_capacity
+  health_check_type = "EC2"
+  min_size          = each.value.min_size
+  max_size          = each.value.max_size
+  desired_capacity  = each.value.desired_capacity
 
   # https://github.com/hashicorp/terraform-provider-aws/issues/12582
   autoscaling_group_tags = {
@@ -177,8 +177,8 @@ module "vpc" {
   private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 4, k)]
   public_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 48)]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  enable_nat_gateway   = true
+  single_nat_gateway   = true
   enable_dns_hostnames = true
 
   tags = var.tags
@@ -237,26 +237,26 @@ module "alb_sg" {
 ##################################################################
 
 module "mq" {
-    source = "cloudposse/mq-broker/aws"
-    version     = "3.0.0"
-    
-    enabled = var.create_mq
+  source  = "cloudposse/mq-broker/aws"
+  version = "3.0.0"
 
-    name                       = var.mq_broker_name
-    apply_immediately          = true
-    auto_minor_version_upgrade = true
-    deployment_mode            = var.mq_deployment_mode
-    engine_type                = var.mq_engine_type
-    engine_version             = var.mq_engine_version
-    host_instance_type         = var.mq_host_instance_type
-    publicly_accessible        = true
-    create_security_group      = false
-    general_log_enabled        = false
-    audit_log_enabled          = false
-    encryption_enabled         = true
-    use_aws_owned_key          = true
-    vpc_id                     = module.vpc.vpc_id
-    subnet_ids                 = var.mq_deployment_mode == "SINGLE_INSTANCE" ? [module.vpc.private_subnets[0]] : module.vpc.private_subnets
+  enabled = var.create_mq
+
+  name                       = local.mq_broker_name
+  apply_immediately          = true
+  auto_minor_version_upgrade = true
+  deployment_mode            = var.mq_deployment_mode
+  engine_type                = var.mq_engine_type
+  engine_version             = var.mq_engine_version
+  host_instance_type         = var.mq_host_instance_type
+  publicly_accessible        = true
+  create_security_group      = false
+  general_log_enabled        = false
+  audit_log_enabled          = false
+  encryption_enabled         = true
+  use_aws_owned_key          = true
+  vpc_id                     = module.vpc.vpc_id
+  subnet_ids                 = var.mq_deployment_mode == "SINGLE_INSTANCE" ? [module.vpc.private_subnets[0]] : module.vpc.private_subnets
 }
 
 ##################################################################
@@ -268,52 +268,44 @@ module "db" {
   source  = "terraform-aws-modules/rds/aws"
   version = "5.6.0"
 
-  create_db_instance = var.create_database_instance
-  identifier = var.database_instance_name
-
-  engine            = var.database_engine
-  engine_version    = var.database_engine_version
-  instance_class    = var.database_instance_class
-  allocated_storage = var.database_allocated_storage
-  storage_encrypted = var.database_storage_encrypted
+  create_db_instance          = var.create_database_instance
+  identifier                  = var.database_instance_name
+  engine                      = var.database_engine
+  engine_version              = var.database_engine_version
+  family                      = var.database_family
+  major_engine_version        = var.database_major_engine_version
+  instance_class              = var.database_instance_class
+  allocated_storage           = var.database_allocated_storage
+  storage_type                = var.database_storage_type
+  storage_encrypted           = var.database_storage_encrypted
+  availability_zone           = var.database_availability_zone
+  custom_iam_instance_profile = var.database_custom_iam_instance_profile
 
   db_name  = var.database_name
   username = var.database_username
   port     = var.database_port
 
-  skip_final_snapshot = true
-  allow_major_version_upgrade = var.database_allow_major_version_upgrade
-
+  skip_final_snapshot                 = var.database_skip_final_snapshot
+  allow_major_version_upgrade         = var.database_allow_major_version_upgrade
+  multi_az                            = var.database_multi_az
   iam_database_authentication_enabled = var.database_iam_database_authentication_enabled
+  publicly_accessible                 = var.database_publicly_accessible
 
+  subnet_ids             = module.vpc.private_subnets
   vpc_security_group_ids = [module.rds_sg.security_group_id]
 
-  publicly_accessible    = var.database_publicly_accessible
   # monitoring_interval = "30"
   # monitoring_role_name = "MyRDSMonitoringRole"
   # create_monitoring_role = true
 
-  enabled_cloudwatch_logs_exports = ["error"]
-  create_cloudwatch_log_group     = true
+  enabled_cloudwatch_logs_exports = var.database_enabled_cloudwatch_logs_exports
+  create_cloudwatch_log_group     = var.database_create_cloudwatch_log_group
+  create_db_subnet_group          = var.database_create_db_subnet_group
+  deletion_protection             = var.database_deletion_protection
+  parameters                      = var.database_parameters
+  options                         = var.database_options
 
   tags = var.tags
-
-  # DB subnet group
-  create_db_subnet_group = true
-  subnet_ids             = module.vpc.private_subnets
-
-  # DB parameter group
-  family = var.database_family
-
-  # DB option group
-  major_engine_version = var.database_major_engine_version
-
-  # Database Deletion Protection
-  deletion_protection = var.database_deletion_protection
-
-  parameters = var.database_parameters
-
-  options = var.database_options
 }
 
 module "rds_sg" {
@@ -339,39 +331,36 @@ module "rds_sg" {
 ##################################################################
 
 module "redis" {
-  source = "umotif-public/elasticache-redis/aws"
+  source  = "umotif-public/elasticache-redis/aws"
   version = "~> 3.0.0"
 
-  name_prefix        = var.app_name
-  num_cache_clusters = 1
-  node_type          = var.redis_node_type
-
-  engine_version            = var.redis_engine_version
-
-  # automatic_failover_enabled = true
-  # multi_az_enabled           = true
-
+  name_prefix                = var.app_name
+  num_cache_clusters         = var.redis_num_cache_clusters
+  node_type                  = var.redis_node_type
+  engine_version             = var.redis_engine_version
+  automatic_failover_enabled = var.redis_automatic_failover_enabled
+  multi_az_enabled           = var.redis_multi_az_enabled
   at_rest_encryption_enabled = var.redis_at_rest_encryption_enabled
   transit_encryption_enabled = var.redis_transit_encryption_enabled
-  #auth_token                 = "1234567890asdfghjkl"
-
-  apply_immediately = var.redis_apply_immediately
-  family            = var.redis_family
-  description       = var.redis_description
+  auth_token                 = var.redis_auth_token
+  apply_immediately          = var.redis_apply_immediately
+  family                     = var.redis_family
+  description                = var.redis_description
+  cluster_mode_enabled       = var.redis_cluster_mode_enabled
 
   subnet_ids = module.vpc.private_subnets
   vpc_id     = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
 
-  # log_delivery_configuration = [
-  #   {
-  #     destination_type = "cloudwatch-logs"
-  #     destination      = "aws_cloudwatch_log_group.henrique.name"
-  #     log_format       = "json"
-  #     log_type         = "engine-log"
-  #   }
-  # ]
+  log_delivery_configuration = [
+    {
+      destination_type = "cloudwatch-logs"
+      destination      = aws_cloudwatch_log_group.redis.name
+      log_format       = "json"
+      log_type         = "engine-log"
+    }
+  ]
 
   tags = var.tags
 }
@@ -394,7 +383,7 @@ resource "aws_service_discovery_private_dns_namespace" "this" {
 module "acm" {
   source  = "terraform-aws-modules/acm/aws"
   version = "~> 3.0"
-  
+
   create_certificate        = var.create_certificate
   domain_name               = var.domain
   zone_id                   = data.aws_route53_zone.this.id
@@ -416,6 +405,13 @@ resource "aws_cloudwatch_log_group" "this" {
   tags = var.tags
 }
 
+resource "aws_cloudwatch_log_group" "redis" {
+  name              = var.redis_cloudwatch_log_group_name
+  retention_in_days = var.redis_cloudwatch_retention_in_days
+
+  tags = var.tags
+}
+
 resource "aws_ssm_parameter" "autoscaling_key_pair" {
   name        = "/autoscaling/${var.app_name}/key_pair"
   description = "Key pair of autoscaling group"
@@ -426,19 +422,19 @@ resource "aws_ssm_parameter" "autoscaling_key_pair" {
 }
 
 resource "aws_ssm_parameter" "mq_connection_uri" {
-  count       = var.create_mq ? 1 : 0
-  name        = "/mq/mq_connection_uri"
-  value       = format("amqps://%s:%s@%s", 
-      module.mq.application_username,
-      data.aws_ssm_parameter.mq.0.value,
-      trimprefix(module.mq.primary_ssl_endpoint, "amqps://")
-    )
+  count = var.create_mq ? 1 : 0
+  name  = "/mq/mq_connection_uri"
+  value = format("amqps://%s:%s@%s",
+    module.mq.application_username,
+    data.aws_ssm_parameter.mq[0].value,
+    trimprefix(module.mq.primary_ssl_endpoint, "amqps://")
+  )
   description = "AMQ connection uri"
   type        = "SecureString"
   key_id      = var.kms_ssm_key_arn
   overwrite   = var.overwrite_ssm_parameter
 
-  tags        = var.tags
+  tags = var.tags
 }
 
 # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html#ecs-optimized-ami-linux
@@ -454,7 +450,7 @@ data "aws_ssm_parameter" "mq" {
   count = var.create_mq ? 1 : 0
 
   name = "/mq/mq_application_password"
-  
+
   depends_on = [
     module.mq
   ]

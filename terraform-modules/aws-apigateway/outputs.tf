@@ -18,5 +18,5 @@ output "apigatewayv2_api_api_endpoint" {
 }
 
 output "availability_zone_subnets" {
-  value       = local.availability_zone_subnets
+  value = local.availability_zone_subnets
 }

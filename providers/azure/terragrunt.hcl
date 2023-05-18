@@ -3,17 +3,17 @@ locals {
   env_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 
   # Extract the variables we need for easy access
-  subscription_id      = local.env_vars.locals.subscription_id
-  tenant_id            = local.env_vars.locals.tenant_id
-  env_name             = local.env_vars.locals.env_name
-  location             = local.env_vars.locals.location
-  resource_group_name  = local.env_vars.locals.resource_group_name
+  subscription_id                        = local.env_vars.locals.subscription_id
+  tenant_id                              = local.env_vars.locals.tenant_id
+  env_name                               = local.env_vars.locals.env_name
+  location                               = local.env_vars.locals.location
+  resource_group_name                    = local.env_vars.locals.resource_group_name
   deployment_storage_resource_group_name = local.env_vars.locals.deployment_storage_resource_group_name
   deployment_storage_account_name        = local.env_vars.locals.deployment_storage_account_name
 
   default_tags = {
-    Environment    = local.env_vars.locals.env_name
-    ManagedBy      = "terraform"
+    Environment = local.env_vars.locals.env_name
+    ManagedBy   = "terraform"
   }
 
 }

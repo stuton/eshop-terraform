@@ -22,7 +22,7 @@ inputs = {
   subnet_prefixes     = ["10.0.1.0/26", "10.0.2.0/24", "10.0.3.0/24"]
   location            = include.root.locals.location
 
-  sqlserver_name               = "eshop"
-  database_name                = "eshop"
+  sqlserver_name = "eshop"
+  database_name  = "eshop"
 
 }

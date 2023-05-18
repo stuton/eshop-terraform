@@ -62,8 +62,8 @@ module "mssql-server" {
   # Allows you to set a user or group as the AD administrator for an Azure SQL server
   ad_admin_login_name = "firstname.lastname@example.com"
 
-#   enable_log_monitoring      = true
-#   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.example.id
+  #   enable_log_monitoring      = true
+  #   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.example.id
 
   # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
   enable_firewall_rules = true
