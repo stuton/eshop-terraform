@@ -26,12 +26,6 @@ variable "create_key_pair" {
   default     = true
 }
 
-variable "custom_key_pair_name" {
-  description = "The name for the custom key pair"
-  type        = string
-  default     = null
-}
-
 variable "create_private_key" {
   description = "Determines whether a private key will be created"
   type        = bool
@@ -86,35 +80,6 @@ variable "vpc_cidr" {
   type        = string
   default     = "10.0.0.0/16"
 }
-
-variable "vpc_name" {
-  description = "Name to be used on all the resources as identifier"
-  type        = string
-  default     = ""
-}
-
-################################################################################
-# ELB
-################################################################################
-
-variable "create_alb" {
-  description = "Determines whether resources will be created (affects all resources)"
-  type        = bool
-  default     = true
-}
-
-variable "load_balancer_name" {
-  description = "The resource name and Name tag of the load balancer."
-  type        = string
-  default     = ""
-}
-
-variable "load_balancer_type" {
-  description = "The type of load balancer to create. Possible values are application or network."
-  type        = string
-  default     = "application"
-}
-
 
 ################################################################################
 # Amazon MQ
@@ -215,7 +180,7 @@ variable "database_deletion_protection" {
 variable "database_skip_final_snapshot" {
   description = "Determines whether a final DB snapshot is created before the DB instance is deleted. If true is specified, no DBSnapshot is created. If false is specified, a DB snapshot is created before the DB instance is deleted"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "database_instance_class" {
@@ -234,16 +199,6 @@ variable "database_username" {
   description = "Username for the master DB user"
   type        = string
   default     = null
-}
-
-variable "database_password" {
-  description = <<EOF
-  Password for the master DB user. Note that this may show up in logs, and it will be stored in the state file.
-  The password provided will not be used if the variable create_random_password is set to true.
-  EOF
-  type        = string
-  default     = null
-  sensitive   = true
 }
 
 variable "database_port" {
@@ -270,31 +225,7 @@ variable "database_multi_az" {
   default     = false
 }
 
-variable "database_subnet_ids" {
-  description = "A list of VPC subnet IDs"
-  type        = list(string)
-  default     = []
-}
-
 # DB parameter group
-variable "database_create_db_parameter_group" {
-  description = "Whether to create a database parameter group"
-  type        = bool
-  default     = true
-}
-
-variable "database_parameter_group_name" {
-  description = "Name of the DB parameter group to associate or create"
-  type        = string
-  default     = null
-}
-
-variable "database_parameter_group_description" {
-  description = "Description of the DB parameter group to create"
-  type        = string
-  default     = null
-}
-
 variable "database_family" {
   description = "The family of the DB parameter group"
   type        = string
@@ -308,24 +239,6 @@ variable "database_parameters" {
 }
 
 # DB option group
-variable "database_create_db_option_group" {
-  description = "Create a database option group"
-  type        = bool
-  default     = true
-}
-
-variable "database_option_group_name" {
-  description = "Name of the option group"
-  type        = string
-  default     = null
-}
-
-variable "database_option_group_description" {
-  description = "The description of the option group"
-  type        = string
-  default     = null
-}
-
 variable "database_major_engine_version" {
   description = "Specifies the major version of the engine that this option group should be associated with"
   type        = string
@@ -336,18 +249,6 @@ variable "database_options" {
   description = "A list of Options to apply"
   type        = any
   default     = []
-}
-
-variable "database_create_random_password" {
-  description = "Whether to create random password for RDS primary cluster"
-  type        = bool
-  default     = true
-}
-
-variable "database_random_password_length" {
-  description = "Length of random password to create"
-  type        = number
-  default     = 16
 }
 
 variable "database_publicly_accessible" {
@@ -362,6 +263,24 @@ variable "database_allow_major_version_upgrade" {
   default     = false
 }
 
+variable "database_create_cloudwatch_log_group" {
+  description = "Determines whether a CloudWatch log group is created for each `enabled_cloudwatch_logs_exports`"
+  type        = bool
+  default     = false
+}
+
+variable "database_enabled_cloudwatch_logs_exports" {
+  description = "List of log types to enable for exporting to CloudWatch logs. If omitted, no logs will be exported. Valid values (depending on engine): alert, audit, error, general, listener, slowquery, trace, postgresql (PostgreSQL), upgrade (PostgreSQL)"
+  type        = list(string)
+  default     = []
+}
+
+variable "database_create_db_subnet_group" {
+  description = "Whether to create a database subnet group"
+  type        = bool
+  default     = true
+}
+
 ################################################################################
 # Elasticache Redis
 ################################################################################
@@ -370,6 +289,12 @@ variable "redis_cluster_mode_enabled" {
   type        = bool
   description = "Enable creation of a native redis cluster."
   default     = false
+}
+
+variable "redis_num_cache_clusters" {
+  type        = number
+  default     = 1
+  description = "The number of cache clusters (primary and replicas) this replication group will have. If Multi-AZ is enabled, the value of this parameter must be at least 2. Updates will occur before other modifications. Conflicts with num_node_groups."
 }
 
 variable "redis_engine_version" {
@@ -382,6 +307,18 @@ variable "redis_family" {
   default     = "redis6.x"
   type        = string
   description = "The family of the ElastiCache parameter group."
+}
+
+variable "redis_automatic_failover_enabled" {
+  default     = true
+  type        = bool
+  description = "Specifies whether a read-only replica will be automatically promoted to read/write primary if the existing primary fails. If enabled, number_cache_clusters must be greater than 1. Must be enabled for Redis (cluster mode enabled) replication groups."
+}
+
+variable "redis_multi_az_enabled" {
+  type        = bool
+  description = "Specifies whether to enable Multi-AZ Support for the replication group. If true, `automatic_failover_enabled` must also be enabled. Defaults to false."
+  default     = false
 }
 
 variable "redis_at_rest_encryption_enabled" {
@@ -414,15 +351,26 @@ variable "redis_node_type" {
   description = "The compute and memory capacity of the nodes in the node group."
 }
 
+variable "redis_auth_token" {
+  description = "The password used to access a password protected server. Can be specified only if `transit_encryption_enabled = true`."
+  type        = string
+  default     = ""
+}
+
+variable "redis_cloudwatch_log_group_name" {
+  description = "Name of cloudwatch log group created"
+  type        = string
+}
+
+variable "redis_cloudwatch_retention_in_days" {
+  description = "Specifies the number of days you want to retain log events in the specified log group"
+  type        = string
+  default     = "1"
+}
+
 ################################################################################
 # Security Groups
 ################################################################################
-
-variable "create_alb_sg" {
-  description = "Determines whether resources will be created (affects all resources)"
-  type        = bool
-  default     = true
-}
 
 variable "alb_sg_name" {
   type        = string

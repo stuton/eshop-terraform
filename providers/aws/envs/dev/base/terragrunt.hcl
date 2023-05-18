@@ -18,10 +18,12 @@ inputs = {
   app_name = "eshop"
   vpc_cidr = "10.0.0.0/16"
 
+  # RabbitMQ
   create_mq         = true
   mq_engine_type    = "RabbitMQ"
   mq_engine_version = "3.10.20"
 
+  # RDS Instance
   create_database_instance      = true
   database_instance_name        = "eshop"
   database_engine               = "sqlserver-ex"
@@ -35,15 +37,20 @@ inputs = {
   database_allocated_storage     = 20
   database_max_allocated_storage = 100
 
+  database_create_cloudwatch_log_group = true
+  database_enabled_cloudwatch_logs_exports = ["error"]
+
   database_allow_major_version_upgrade = true
   database_storage_encrypted           = false
   database_skip_final_snapshot         = true
   database_create_db_parameter_group   = false
 
+  # Autoscaling group
   autoscaling_min_size         = 1
   autoscaling_max_size         = 14
   autoscaling_desired_capacity = 3
 
+  # ACM
   create_certificate = false
 
   cloudwatch_log_group_name = "/aws/ecs/eshop"

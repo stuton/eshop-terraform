@@ -28,12 +28,12 @@ output "aws_cloudwatch_log_group_name" {
 ##################################################################
 // TODO if we don't create database, %s would be work
 output "db_connection_string" {
-  value       = var.create_database_instance ? format("Server=%s;User Id=%s;Password=%s;Encrypt=False;TrustServerCertificate=true", 
-      replace(module.db.db_instance_endpoint, ":", ","), 
-      module.db.db_instance_username,
-      module.db.db_instance_password
-    ) : ""
-  sensitive   = true
+  value = var.create_database_instance ? format("Server=%s;User Id=%s;Password=%s;Encrypt=False;TrustServerCertificate=true",
+    replace(module.db.db_instance_endpoint, ":", ","),
+    module.db.db_instance_username,
+    module.db.db_instance_password
+  ) : ""
+  sensitive = true
 }
 
 ##################################################################
@@ -42,7 +42,7 @@ output "db_connection_string" {
 
 output "mq_connection_uri" {
   description = "AmazonMQ connection uri"
-  value       = try(aws_ssm_parameter.mq_connection_uri.0.arn, "")
+  value       = try(aws_ssm_parameter.mq_connection_uri[0].arn, "")
 }
 
 ##################################################################
@@ -54,5 +54,5 @@ output "elasticache_replication_group_primary_endpoint_address" {
 }
 
 output "elasticache_replication_group_reader_endpoint_address" {
-  value       = module.redis.elasticache_replication_group_reader_endpoint_address
+  value = module.redis.elasticache_replication_group_reader_endpoint_address
 }

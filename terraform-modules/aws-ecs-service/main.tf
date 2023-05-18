@@ -8,12 +8,12 @@ module "ecs_service" {
   source  = "terraform-aws-modules/ecs/aws//modules/service"
   version = "~> 5.0"
 
-  name        = var.name
-  cluster_arn = data.aws_ecs_cluster.this.arn
-  cpu    = var.service_cpu
-  memory = var.service_memory
+  name         = var.name
+  cluster_arn  = data.aws_ecs_cluster.this.arn
+  cpu          = var.service_cpu
+  memory       = var.service_memory
   network_mode = var.network_mode
-  
+
   requires_compatibilities = ["EC2"]
 
   service_registries = {
@@ -57,12 +57,12 @@ module "ecs_service" {
       source_security_group_id = data.aws_security_group.this.id
     }
     ec2_http_ingress = {
-      type                     = "ingress"
-      from_port                = var.container_port
-      to_port                  = var.container_port
-      protocol                 = "tcp"
-      description              = "Allow http traffic from ec2 to ec2"
-      cidr_blocks =  [for s in data.aws_subnet.private : s.cidr_block]
+      type        = "ingress"
+      from_port   = var.container_port
+      to_port     = var.container_port
+      protocol    = "tcp"
+      description = "Allow http traffic from ec2 to ec2"
+      cidr_blocks = [for s in data.aws_subnet.private : s.cidr_block]
     }
     egress_all = {
       type        = "egress"
@@ -90,7 +90,7 @@ module "service_alb" {
 
   vpc_id  = data.aws_vpc.this.id
   subnets = data.aws_subnets.public.ids
-  
+
   security_groups = [data.aws_security_group.this.id]
 
   http_tcp_listeners = [
@@ -108,9 +108,9 @@ module "service_alb" {
       backend_protocol = "HTTP"
       backend_port     = var.container_port
       health_check = {
-        path      = var.health_check_path
-        matcher   = "200-399"
-        interval  = 30
+        path     = var.health_check_path
+        matcher  = "200-399"
+        interval = 30
       }
     },
   ]
@@ -123,18 +123,18 @@ module "service_alb" {
 ##################################################################
 
 resource "aws_apigatewayv2_integration" "this" {
-  count            = var.create_apigatewayv2_integration ? 1 : 0
-  api_id           = var.apigatewayv2_id
-  description      = "Example with a load balancer"
-  integration_type = "HTTP_PROXY"
+  count              = var.create_apigatewayv2_integration ? 1 : 0
+  api_id             = var.apigatewayv2_id
+  description        = "Example with a load balancer"
+  integration_type   = "HTTP_PROXY"
   integration_method = "ANY"
-  integration_uri  = "http://${module.service_alb.lb_dns_name}"
+  integration_uri    = "http://${module.service_alb.lb_dns_name}"
 
   # connection_type    = "VPC_LINK"
   # connection_id      = var.apigatewayv2_vpc_link_id
 
   request_parameters = {
-    "overwrite:path"    = "$request.path"
+    "overwrite:path" = "$request.path"
   }
 }
 
@@ -217,7 +217,8 @@ data "aws_route53_zone" "this" {
 ##########
 
 module "cloudfront" {
-  source = "terraform-aws-modules/cloudfront/aws"
+  source  = "terraform-aws-modules/cloudfront/aws"
+  version = "3.2.1"
 
   aliases = ["${var.name}.${var.domain}"]
 
@@ -239,8 +240,8 @@ module "cloudfront" {
   }
 
   default_cache_behavior = {
-    target_origin_id           = "alb"
-    viewer_protocol_policy     = "allow-all"
+    target_origin_id       = "alb"
+    viewer_protocol_policy = "allow-all"
 
     allowed_methods = ["GET", "HEAD", "OPTIONS"]
     cached_methods  = ["GET", "HEAD"]
@@ -271,8 +272,8 @@ module "records" {
       name = var.name
       type = "A"
       alias = {
-        name    = coalesce(module.cloudfront.cloudfront_distribution_domain_name, module.service_alb.lb_dns_name)
-        zone_id = coalesce(module.cloudfront.cloudfront_distribution_hosted_zone_id, module.service_alb.lb_zone_id)
+        name                   = coalesce(module.cloudfront.cloudfront_distribution_domain_name, module.service_alb.lb_dns_name)
+        zone_id                = coalesce(module.cloudfront.cloudfront_distribution_hosted_zone_id, module.service_alb.lb_zone_id)
         evaluate_target_health = false
       }
     },

@@ -5,6 +5,7 @@ variable "resource_group_name" {
 }
 
 variable "location" {
+  type        = string
   description = "The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table'"
   default     = ""
 }
@@ -38,8 +39,8 @@ variable "use_for_each" {
 }
 
 variable "tags" {
-  type = map(string)
-  default = {}
+  type        = map(string)
+  default     = {}
   description = "The tags to associate with environment."
 }
 
@@ -54,31 +55,25 @@ variable "vnet_name" {
 ################################################################################
 
 variable "sqlserver_name" {
+  type        = string
   description = "SQL server Name"
   default     = ""
 }
 
-variable "admin_username" {
-  description = "The administrator login name for the new SQL Server"
-  default     = null
-}
-
-variable "admin_password" {
-  description = "The password associated with the admin_username user"
-  default     = null
-}
-
 variable "database_name" {
+  type        = string
   description = "The name of the database"
   default     = ""
 }
 
 variable "sql_database_edition" {
+  type        = string
   description = "The edition of the database to be created"
   default     = "Standard"
 }
 
 variable "sqldb_service_objective_name" {
+  type        = string
   description = " The service objective name for the database"
   default     = "S1"
 }

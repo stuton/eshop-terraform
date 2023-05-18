@@ -10,7 +10,7 @@ jobs:
       pull-requests: write
 
     env:
-      TF_ROOT: providers/aws
+      TF_ROOT: providers
 
     steps:
       - name: Setup Infracost

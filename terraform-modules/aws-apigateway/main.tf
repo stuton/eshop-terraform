@@ -1,17 +1,17 @@
 # https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vpc-links.html
 locals {
   availability_zone_vpc_links = {
-    "us-east-1" = ["use1-az1", "use1-az2", "use1-az4", "use1-az5", "use1-az6"]
-    "us-east-2" = ["use2-az1", "use2-az2", "use2-az3"]
-    "us-west-1" = ["usw1-az1", "usw1-az3"]
-    "us-west-2" = ["usw2-az1", "usw2-az2", "usw2-az3", "usw2-az4"]
-    "ap-east-1" = ["ape1-az2", "ape1-az3"]
-    "ap-south-1" = ["aps1-az1", "aps1-az2", "aps1-az3"]
+    "us-east-1"    = ["use1-az1", "use1-az2", "use1-az4", "use1-az5", "use1-az6"]
+    "us-east-2"    = ["use2-az1", "use2-az2", "use2-az3"]
+    "us-west-1"    = ["usw1-az1", "usw1-az3"]
+    "us-west-2"    = ["usw2-az1", "usw2-az2", "usw2-az3", "usw2-az4"]
+    "ap-east-1"    = ["ape1-az2", "ape1-az3"]
+    "ap-south-1"   = ["aps1-az1", "aps1-az2", "aps1-az3"]
     "ca-central-1" = ["cac1-az1", "cac1-az2"]
     "eu-central-1" = ["euc1-az1", "euc1-az2", "euc1-az3"]
-    "eu-west-1" = ["euw1-az1", "euw1-az2", "euw1-az3"]
-    "eu-west-2" = ["euw2-az1", "euw2-az2", "euw2-az3"]
-    "eu-west-3" = ["euw3-az1", "euw3-az3"]
+    "eu-west-1"    = ["euw1-az1", "euw1-az2", "euw1-az3"]
+    "eu-west-2"    = ["euw2-az1", "euw2-az2", "euw2-az3"]
+    "eu-west-3"    = ["euw3-az1", "euw3-az3"]
   }
   availability_zone_subnets = {
     for s in data.aws_subnet.public : s.id => s.availability_zone_id if contains(local.availability_zone_vpc_links[data.aws_region.current.name], s.availability_zone_id)
@@ -24,7 +24,8 @@ locals {
 ##################################################################
 
 module "api_gateway" {
-  source = "terraform-aws-modules/apigateway-v2/aws"
+  source  = "terraform-aws-modules/apigateway-v2/aws"
+  version = "2.2.2"
 
   create = var.create_api_gateway
 
@@ -35,9 +36,9 @@ module "api_gateway" {
   # Only if you use private subnet for ALB
   vpc_links = {
     (var.name) = {
-      name = var.name
+      name               = var.name
       security_group_ids = []
-      subnet_ids = keys(local.availability_zone_subnets)
+      subnet_ids         = keys(local.availability_zone_subnets)
     }
   }
 
@@ -77,7 +78,7 @@ module "api_gateway" {
 module "acm" {
   source  = "terraform-aws-modules/acm/aws"
   version = "~> 3.0"
-  
+
   create_certificate        = var.create_certificate
   domain_name               = var.domain
   zone_id                   = data.aws_route53_zone.this.id
@@ -89,7 +90,7 @@ module "acm" {
 ################################################################################
 
 resource "aws_route53_record" "this" {
-  count = var.create_api_gateway ? 1 : 0
+  count   = var.create_api_gateway ? 1 : 0
   zone_id = data.aws_route53_zone.this.zone_id
   name    = var.subdomain
   type    = "A"
@@ -129,11 +130,4 @@ data "aws_subnet" "public" {
   for_each = toset(data.aws_subnets.public.ids)
 
   id = each.key
-}
-
-data "aws_subnets" "private" {
-  filter {
-    name   = "tag:Name"
-    values = ["eshop-vpc-private-*"]
-  }
 }
