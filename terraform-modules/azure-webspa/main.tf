@@ -4,6 +4,8 @@ locals {
   }
 }
 terraform {
+  required_version = ">= 0.13.1"
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -48,7 +50,7 @@ resource "azurerm_container_app" "eshop-ca" {
   template {
     container {
       name   = var.service
-      image  = "winshiftq/webspa:linux-terraform"
+      image  = var.image
       cpu    = 0.25
       memory = "0.5Gi"
     }
