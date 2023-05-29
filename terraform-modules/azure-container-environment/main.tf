@@ -81,15 +81,14 @@ module "mssql-server" {
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
-  name                = "acctest-01"
+  name                = "eshop-law"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 1
+  retention_in_days   = 30
 }
 
 resource "azurerm_container_app_environment" "this" {
-  name                       = "eshop"
+  name                       = "eshop-cae"
   location                   = azurerm_resource_group.this.location
   resource_group_name        = azurerm_resource_group.this.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
